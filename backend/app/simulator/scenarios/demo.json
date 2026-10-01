@@ -1,0 +1,26 @@
+{
+  "name": "demo",
+  "description": "Dramatic demo for a 2-minute video: home dominance, away press and equaliser, tactical shift, late home winner.",
+  "tempo": 1.05,
+  "target_goals": { "min": 3, "max": 3 },
+  "goal_minutes": [23, 57, 89],
+  "goal_teams": ["home", "away", "home"],
+  "possession_spells": [
+    { "start_minute": 0, "end_minute": 22, "team": "home", "share": 0.68 },
+    { "start_minute": 58, "end_minute": 75, "team": "away", "share": 0.60 }
+  ],
+  "press_spells": [
+    { "start_minute": 30, "end_minute": 45, "team": "away" },
+    { "start_minute": 76, "end_minute": 88, "team": "home" }
+  ],
+  "counter_bursts": [
+    { "start_minute": 46, "end_minute": 57, "team": "away" },
+    { "start_minute": 80, "end_minute": 90, "team": "home" }
+  ],
+  "tactical_shift": {
+    "minute": 60,
+    "team": "home",
+    "formation_after": "3-4-3",
+    "note": "Home side goes all-out attack chasing the winner in front of the home crowd."
+  }
+}

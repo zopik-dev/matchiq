@@ -1,0 +1,22 @@
+{
+  "name": "default",
+  "description": "Balanced league match: home possession early, away press mid-first-half, open second half.",
+  "tempo": 1.0,
+  "target_goals": { "min": 0, "max": 4 },
+  "possession_spells": [
+    { "start_minute": 0, "end_minute": 25, "team": "home", "share": 0.62 },
+    { "start_minute": 55, "end_minute": 70, "team": "away", "share": 0.58 }
+  ],
+  "press_spells": [
+    { "start_minute": 25, "end_minute": 40, "team": "away" }
+  ],
+  "counter_bursts": [
+    { "start_minute": 65, "end_minute": 80, "team": "home" }
+  ],
+  "tactical_shift": {
+    "minute": 60,
+    "team": "away",
+    "formation_after": "3-4-3",
+    "note": "Away side pushes an extra attacker on, leaving space behind."
+  }
+}
