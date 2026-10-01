@@ -8,7 +8,7 @@ shift and post-goal momentum swings) are configured per scenario JSON file.
 
 import json
 import random
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from app.models.events import (
@@ -107,11 +107,7 @@ def _goal_minutes(rng: random.Random, scenario: dict) -> list[tuple[int, str]]:
             teams.append(rng.choice(["home", "away"]))
         return sorted(zip(minutes, teams, strict=True))
     target = scenario.get("target_goals", {"min": 0, "max": 4})
-    options = [
-        n
-        for n in GOAL_COUNT_WEIGHTS
-        if target.get("min", 0) <= n <= target.get("max", 4)
-    ]
+    options = [n for n in GOAL_COUNT_WEIGHTS if target.get("min", 0) <= n <= target.get("max", 4)]
     count = rng.choices(options, weights=[GOAL_COUNT_WEIGHTS[n] for n in options])[0]
     minutes = set()
     while len(minutes) < count:
@@ -132,7 +128,7 @@ def _plan_substitutions(
         minutes = sorted(rng.sample(range(55, 86), k=n_subs))
         # Substitute attackers/midfielders first, keep it plausible.
         off_candidates = [p for p in starters if p.position != Position.GK]
-        for minute, off in zip(minutes, rng.sample(off_candidates, k=n_subs)):
+        for minute, off in zip(minutes, rng.sample(off_candidates, k=n_subs), strict=True):
             on = subs[len([s for s in plans if s[2].id == team.id]) % len(subs)]
             plans.append((minute, rng.randint(0, 59), team, off, on))
     plans.sort(key=lambda s: (s[0], s[1]))
@@ -156,13 +152,11 @@ def generate_match(seed: int, scenario: str | dict = "default") -> MatchData:
         match_id=match_id,
         teams=[home, away],
         stadium=STADIUM,
-        kickoff_time=datetime(2026, 9, 12, 15, 0, tzinfo=timezone.utc),
+        kickoff_time=datetime(2026, 9, 12, 15, 0, tzinfo=UTC),
     )
 
     tempo = float(scenario_dict.get("tempo", 1.0))
-    total = min(
-        MAX_EVENTS, max(MIN_EVENTS, round(rng.randint(MIN_EVENTS, MAX_EVENTS) * tempo))
-    )
+    total = min(MAX_EVENTS, max(MIN_EVENTS, round(rng.randint(MIN_EVENTS, MAX_EVENTS) * tempo)))
     goals = _goal_minutes(rng, scenario_dict)
     subs = _plan_substitutions(rng, home, away)
 
@@ -392,7 +386,10 @@ def _build_open_play(
         }
     if kind == EventType.SHOT:
         player = _pick_player(rng, squad, "shot")
-        nx = min(99.0, max(60.0, goal_x + rng.uniform(-22, -2) if goal_x == 100.0 else rng.uniform(2, 22)))
+        nx = min(
+            99.0,
+            max(60.0, goal_x + rng.uniform(-22, -2) if goal_x == 100.0 else rng.uniform(2, 22)),
+        )
         ny = 50 + rng.uniform(-22, 22)
         ball[0], ball[1] = nx, ny
         dist = abs(goal_x - nx)
@@ -429,9 +426,7 @@ def _build_open_play(
             if kind == EventType.TACKLE
             else rng.choice([EventOutcome.SUCCESS, EventOutcome.NEUTRAL])
         )
-        return {
-            "type": kind, "outcome": outcome, "player": player, "at": tuple(ball), "arc": arc
-        }
+        return {"type": kind, "outcome": outcome, "player": player, "at": tuple(ball), "arc": arc}
     if kind == EventType.POSSESSION_CHANGE:
         player = _pick_player(rng, squad, "pass")
         return {
@@ -456,9 +451,7 @@ def save_match(match: MatchData, path: str | Path) -> Path:
     """Write a match to JSON and return the path."""
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(
-        match.model_dump_json(indent=1), encoding="utf-8"
-    )
+    target.write_text(match.model_dump_json(indent=1), encoding="utf-8")
     return target
 
 

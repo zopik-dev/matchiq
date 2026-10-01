@@ -14,13 +14,13 @@ Conventions used by the generator and replay engine:
 """
 
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 
-class EventType(str, Enum):
+class EventType(StrEnum):
     """Allowed synthetic event types."""
 
     PASS = "pass"
@@ -38,7 +38,7 @@ class EventType(str, Enum):
     FULL_TIME = "full_time"
 
 
-class EventOutcome(str, Enum):
+class EventOutcome(StrEnum):
     """Allowed outcome labels for events."""
 
     COMPLETE = "complete"
@@ -53,7 +53,7 @@ class EventOutcome(str, Enum):
     NEUTRAL = "neutral"
 
 
-class Position(str, Enum):
+class Position(StrEnum):
     """Simplified player positions."""
 
     GK = "GK"
@@ -63,9 +63,7 @@ class Position(str, Enum):
 
 
 #: Events that describe the match clock rather than on-ball action.
-SYSTEM_EVENTS = frozenset(
-    {EventType.KICKOFF, EventType.HALF_TIME, EventType.FULL_TIME}
-)
+SYSTEM_EVENTS = frozenset({EventType.KICKOFF, EventType.HALF_TIME, EventType.FULL_TIME})
 
 #: Slack (seconds) between timestamp_s and minute*60+second for stoppage time.
 TIMESTAMP_SLACK_S = 600.0
@@ -108,14 +106,11 @@ class Event(BaseModel):
     def _check_consistency(self) -> "Event":
         expected_period: Literal[1, 2] = 1 if self.minute <= 45 else 2
         if self.period != expected_period:
-            raise ValueError(
-                f"period {self.period} inconsistent with minute {self.minute}"
-            )
+            raise ValueError(f"period {self.period} inconsistent with minute {self.minute}")
         clock = self.minute * 60 + self.second
         if abs(self.timestamp_s - clock) > TIMESTAMP_SLACK_S:
             raise ValueError(
-                f"timestamp_s {self.timestamp_s} too far from "
-                f"minute/second clock {clock}"
+                f"timestamp_s {self.timestamp_s} too far from minute/second clock {clock}"
             )
         if self.type in SYSTEM_EVENTS:
             return self
