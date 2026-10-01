@@ -44,6 +44,7 @@ class PipelineResult:
         degraded: int,
         filtered: int,
         moment_count: int,
+        details: list[dict] | None = None,
     ) -> None:
         self.match_id = match_id
         self.lines = lines
@@ -52,6 +53,8 @@ class PipelineResult:
         self.degraded = degraded
         self.filtered = filtered
         self.moment_count = moment_count
+        #: Per-moment texts for live streaming (explanation/story/line or None).
+        self.details: list[dict] = details or []
 
 
 class MatchPipeline:
@@ -171,6 +174,7 @@ class MatchPipeline:
         personalize_agent = PersonalizeAgent(self.profile)
 
         lines: list[str] = []
+        details: list[dict] = []
         degraded = 0
         filtered = 0
         for moment, stats in staged:
@@ -218,8 +222,34 @@ class MatchPipeline:
             )
             if personalized is None:
                 filtered += 1
+                details.append(
+                    {
+                        "moment_id": moment.id,
+                        "moment_type": moment.type,
+                        "minute": moment.minute,
+                        "timestamp_s": moment.timestamp_s,
+                        "team_id": moment.team_id,
+                        "evidence": moment.evidence,
+                        "explanation": str(explanation.payload.get("text", "")),
+                        "story": str(story_line.payload.get("text", "")),
+                        "line": None,
+                    }
+                )
                 continue
             lines.append(str(personalized.payload["text"]))
+            details.append(
+                {
+                    "moment_id": moment.id,
+                    "moment_type": moment.type,
+                    "minute": moment.minute,
+                    "timestamp_s": moment.timestamp_s,
+                    "team_id": moment.team_id,
+                    "evidence": moment.evidence,
+                    "explanation": str(explanation.payload.get("text", "")),
+                    "story": str(story_line.payload.get("text", "")),
+                    "line": str(personalized.payload["text"]),
+                }
+            )
             self.store.record_output(
                 match_id,
                 moment_id,
@@ -258,6 +288,7 @@ class MatchPipeline:
             degraded=degraded,
             filtered=filtered,
             moment_count=len(staged),
+            details=details,
         )
 
     def _handover_explain(

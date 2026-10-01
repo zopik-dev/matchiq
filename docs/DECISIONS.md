@@ -2,6 +2,14 @@
 
 Log of non-obvious decisions (newest first).
 
+- (Phase 4) SSE reuses the batch pipeline: one full MockLLM run per profile is
+  cached, then events stream paced by speed while moments/texts/traces release
+  at their timestamps. Connecting a viewer (re)starts playback; reconnects get
+  catch-up moments so seek and profile switches rebuild the feed.
+- (Phase 4) Single-viewer session: a new stream takes over the old one. Enough
+  for a laptop demo; multi-room sync is out of scope.
+- (Phase 4) Frontend is Vite + React + TS + Tailwind v3 + lucide-react, SVG-only
+  visuals (no chart/3D libs). Dark broadcast grid on #0B0F19.
 - (Phase 3) In-repo orchestrator instead of Microsoft Agent Framework: the
   framework's dependency weight is wrong for an offline-first weak-laptop
   project; typed handoffs, retries and the trace fit in one explicit module.
