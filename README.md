@@ -6,8 +6,10 @@ synthetic and invented** — no real teams, players, badges or league branding.
 
 Phase 1: repo skeleton, synthetic event schema, deterministic match generator,
 replay engine, CLI.
-Phase 2 (current): deterministic analytics engine — rolling windows, momentum
+Phase 2: deterministic analytics engine — rolling windows, momentum
 index, key-moment detectors, storyline segmenter. Zero LLM, pure math.
+Phase 3 (current): five-agent pipeline (event, context, explain, story,
+personalize) with MockLLM offline and Azure Foundry client via env vars.
 
 ## Requirements
 
@@ -38,6 +40,15 @@ cd backend
 python -m app.simulator generate --seed 42 --scenario demo
 python -m app.simulator replay --speed 60
 python -m app.engine feed --file ../data/samples/sample_demo_seed42.json
+python -m app.agents run --mode fan --lang en
 ```
 
 Generated matches are written to `../data/samples/` as JSON.
+
+## Agent pipeline options
+
+```powershell
+cd backend
+python -m app.agents run --mode beginner --lang uk --club NGU --player-focus NGU_10
+python -m app.agents run --llm azure  # needs MATCHIQ_AZURE_* env vars, else MockLLM
+```

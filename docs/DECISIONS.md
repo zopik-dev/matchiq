@@ -2,6 +2,20 @@
 
 Log of non-obvious decisions (newest first).
 
+- (Phase 3) In-repo orchestrator instead of Microsoft Agent Framework: the
+  framework's dependency weight is wrong for an offline-first weak-laptop
+  project; typed handoffs, retries and the trace fit in one explicit module.
+- (Phase 3) Grounding rule: a number token must appear in an evidence string
+  (scores "2-1", ids "NGU_11") or match an evidence number within 0.011
+  (rounding); a leading minus counts as a sign except after a letter.
+- (Phase 3) Personalization is rule-based (no LLM): mode framing, EN/UK fixed
+  strings, club top-billing, player-focus filtering. The recap is pure code
+  from counted facts.
+- (Phase 3) Azure client uses only the standard library and env vars
+  (`MATCHIQ_AZURE_ENDPOINT/API_KEY/DEPLOYMENT/API_VERSION`); missing config
+  means `available() == False` and the pipeline falls back to MockLLM.
+- (Phase 3) Duplicate moment ids fixed with a monotonic counter (two moments
+  from one event previously shared an id).
 - (Phase 2) Engine has one live path: `AnalyticsEngine.update()` event by event.
   No batch mode; file analysis feeds the same method, so streaming and CLI agree.
 - (Phase 2) Momentum is zero-sum (-100..100, home perspective): possession edge x1.2,

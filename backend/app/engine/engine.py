@@ -45,6 +45,7 @@ class AnalyticsEngine:
         self.names = team_names or {}
         self.moments: list[Moment] = []
         self.samples: dict[int, WindowStats] = {}
+        self._moment_seq = 0
         self._last_spike_minute: dict[str, float] = {}
         self._lead: str | None = None
         self._prev_momentum_home: float | None = None
@@ -56,7 +57,8 @@ class AnalyticsEngine:
         return self.names.get(team_id, team_id)
 
     def _next_id(self) -> str:
-        return f"m{len(self.moments) + 1:04d}"
+        self._moment_seq += 1
+        return f"m{self._moment_seq:04d}"
 
     def update(self, event: Event) -> list[Moment]:
         """Fold one event into the state and return newly fired moments."""
