@@ -1,0 +1,22 @@
+# Python / venv
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.venv/
+venv/
+.env/
+
+# Pytest / lint caches
+.pytest_cache/
+.ruff_cache/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Data outputs (keep tracked samples, ignore local artefacts)
+data/samples/match_*.json
+!data/samples/.gitkeep
