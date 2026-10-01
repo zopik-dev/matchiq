@@ -2,6 +2,14 @@
 
 Log of non-obvious decisions (newest first).
 
+- (Frontend Variant 2) Adopted the Figma prototype's visual system (glass
+  cards, floodlit pitch, pressure area chart, 2x2 metrics, breakdown steps)
+  on the existing Tailwind v3 setup (theme ported, no v4 migration). All
+  prototype mock data was discarded: sine-wave pressure replaced by the real
+  momentum series, invented names/xG replaced by roster lookup and evidence
+  payloads, fabricated breakdown steps replaced by the real events preceding
+  each moment. Metrics show only engine-computed numbers (shot/match xG,
+  momentum, chances, possession).
 - (Phase 4) SSE reuses the batch pipeline: one full MockLLM run per profile is
   cached, then events stream paced by speed while moments/texts/traces release
   at their timestamps. Connecting a viewer (re)starts playback; reconnects get

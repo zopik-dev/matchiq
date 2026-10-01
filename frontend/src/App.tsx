@@ -1,17 +1,14 @@
-import {
-  Flag,
-  Pause,
-  Play,
-  RotateCcw,
-  Volleyball,
-  Zap,
-} from "lucide-react";
+import { Flag } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { controls, fetchMatch, streamUrl } from "./api";
+import Breakdown from "./components/Breakdown";
 import Feed from "./components/Feed";
-import MomentumChart from "./components/MomentumChart";
+import Glass from "./components/Glass";
+import Header, { BrandMark } from "./components/Header";
+import Metrics from "./components/Metrics";
+import Narrative from "./components/Narrative";
 import Pitch from "./components/Pitch";
-import Timeline from "./components/Timeline";
+import PressureTimeline from "./components/PressureTimeline";
 import TracePanel from "./components/TracePanel";
 import { STR } from "./strings";
 import type {
@@ -22,8 +19,6 @@ import type {
   Profile,
   ReplayState,
 } from "./types";
-
-const SPEEDS = [1, 10, 60];
 
 export default function App() {
   const [match, setMatch] = useState<MatchPayload | null>(null);
@@ -82,10 +77,7 @@ export default function App() {
       }),
     );
     on("trace", (d) =>
-      setHops((prev) => [
-        ...prev,
-        ...((d as { hops: Hop[] }).hops ?? []),
-      ]),
+      setHops((prev) => [...prev, ...((d as { hops: Hop[] }).hops ?? [])]),
     );
     source.onerror = () => setConnected(false);
     return () => source.close();
@@ -109,6 +101,18 @@ export default function App() {
     [reconnect],
   );
 
+  const lookup = useCallback(
+    (id: string | null) => {
+      if (!id || !match) return null;
+      for (const tm of match.meta.teams) {
+        const p = tm.roster.find((r) => r.id === id);
+        if (p) return { name: p.name, number: p.number };
+      }
+      return null;
+    },
+    [match],
+  );
+
   const players = useMemo(
     () =>
       (match?.meta.teams ?? []).flatMap((tm) =>
@@ -120,181 +124,162 @@ export default function App() {
   if (!match || !home || !away) {
     return (
       <div className="flex h-screen items-center justify-center bg-ink text-slate-300">
-        {t.connecting} — is the backend running on :8000?
+        {t.connecting} — {t.backendDown}
       </div>
     );
   }
 
   const minute = replay?.minute ?? 0;
-  const score = replay?.score ?? { home: 0, away: 0 };
+  const featured = feed.length > 0 ? feed[feed.length - 1] : null;
+  const chances = match.moments.filter(
+    (m) => m.type === "big_chance" || m.type === "goal",
+  ).length;
 
   return (
-    <div className="min-h-screen bg-ink text-slate-100">
-      <header className="flex flex-wrap items-center gap-3 border-b border-slate-800 bg-panel px-4 py-2">
-        <span className="flex items-center gap-1.5 rounded-md bg-sky-500/15 px-2 py-1 text-sm font-bold text-sky-300">
-          <Zap size={15} /> MatchIQ
-        </span>
-        <div className="flex items-center gap-2 rounded-full border border-slate-700 bg-slate-800 px-4 py-1.5">
-          <span className="text-sm font-semibold">{home.name}</span>
-          <span className="rounded bg-slate-900 px-2 py-0.5 font-mono text-lg font-bold">
-            {score.home} - {score.away}
-          </span>
-          <span className="text-sm font-semibold">{away.name}</span>
-          <span className="font-mono text-xs text-slate-400">
-            {minute.toFixed(0)}&prime;
-          </span>
-          <span
-            className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${
-              replay?.playing ? "bg-red-500/20 text-red-300" : "bg-slate-700 text-slate-300"
-            }`}
-          >
-            {replay?.playing ? t.live : t.paused}
-          </span>
-        </div>
-        <div className="flex items-center gap-1">
-          <button
-            title={replay?.playing ? t.pause : t.play}
-            onClick={async () => {
-              setReplay(replay?.playing ? await controls.pause() : await controls.play());
-            }}
-            className="rounded-md bg-sky-600 p-1.5 hover:bg-sky-500"
-          >
-            {replay?.playing ? <Pause size={15} /> : <Play size={15} />}
-          </button>
-          {SPEEDS.map((s) => (
-            <button
-              key={s}
-              onClick={async () => setReplay(await controls.speed(s))}
-              className={`rounded-md px-2 py-1 font-mono text-xs ${
-                replay?.speed === s ? "bg-sky-600" : "bg-slate-700 hover:bg-slate-600"
-              }`}
-            >
-              {s}x
-            </button>
-          ))}
-          <button
-            title={t.restart}
-            onClick={() => void doSeek(0)}
-            className="rounded-md bg-slate-700 p-1.5 hover:bg-slate-600"
-          >
-            <RotateCcw size={15} />
-          </button>
-        </div>
-        <div className="flex items-center gap-1">
-          {(["analyst", "fan", "beginner"] as const).map((m) => (
-            <button
-              key={m}
-              onClick={() => changeProfile({ mode: m })}
-              className={`rounded-md px-2 py-1 text-xs capitalize ${
-                profile.mode === m ? "bg-emerald-600" : "bg-slate-700 hover:bg-slate-600"
-              }`}
-            >
-              {m}
-            </button>
-          ))}
-        </div>
-        <div className="flex items-center gap-1">
-          {(["en", "uk"] as const).map((l) => (
-            <button
-              key={l}
-              onClick={() => changeProfile({ lang: l })}
-              className={`rounded-md px-2 py-1 font-mono text-xs uppercase ${
-                profile.lang === l ? "bg-violet-600" : "bg-slate-700 hover:bg-slate-600"
-              }`}
-            >
-              {l === "en" ? "EN" : "UA"}
-            </button>
-          ))}
-        </div>
-        {!connected && (
-          <span className="flex items-center gap-1 text-xs text-amber-300">
-            <Volleyball size={13} /> {t.connecting}
-          </span>
-        )}
-      </header>
+    <div className="relative min-h-screen overflow-hidden bg-ink text-white">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(60% 50% at 30% 0%, rgba(62,230,160,0.10), transparent 70%), radial-gradient(50% 45% at 100% 20%, rgba(106,183,255,0.10), transparent 70%)",
+        }}
+      />
 
-      <main className="grid grid-cols-1 gap-3 p-3 lg:grid-cols-[65%_35%]">
-        <section className="flex flex-col gap-3">
-          <div className="rounded-xl border border-slate-700 bg-panel p-3">
-            <h2 className="mb-2 text-sm font-semibold text-slate-300">{t.pitch}</h2>
-            <Pitch events={events} homeId={home.id} />
-          </div>
-          <div className="rounded-xl border border-slate-700 bg-panel p-3">
-            <h2 className="mb-1 text-sm font-semibold text-slate-300">
-              {t.momentum}
-              {momentum !== null && (
-                <span className="ml-2 font-mono text-xs text-slate-400">
-                  {momentum.home >= 0 ? home.name : away.name} +{Math.abs(momentum.home).toFixed(0)}
+      <Header
+        home={home}
+        away={away}
+        replay={replay}
+        profile={profile}
+        onProfile={changeProfile}
+        onSeek={(m) => void doSeek(m)}
+        onReplay={setReplay}
+        connected={connected}
+        t={t}
+      />
+
+      <main className="relative mx-auto grid max-w-[1400px] gap-6 px-4 pb-14 pt-8 lg:grid-cols-[minmax(0,1fr)_400px] lg:px-8">
+        <section className="flex flex-col gap-6">
+          <Glass className="rounded-[28px] p-3 sm:p-4">
+            <div className="flex items-center justify-between px-2 pb-3 pt-1">
+              <div>
+                <div className="text-[11px] uppercase tracking-[0.18em] text-white/45">
+                  {t.matchCentre}
+                </div>
+                <h1 className="font-display text-xl font-semibold">
+                  <BrandMark /> · {home.name} vs {away.name}
+                </h1>
+              </div>
+              <div className="hidden items-center gap-4 text-xs text-white/60 sm:flex">
+                <span className="flex items-center gap-1.5">
+                  <i className="size-2.5 rounded-full bg-sky" />
+                  {home.name}
                 </span>
-              )}
-            </h2>
-            <MomentumChart series={match.momentum_series} minute={minute} />
-          </div>
-          <div className="rounded-xl border border-slate-700 bg-panel p-3">
-            <h2 className="mb-2 text-sm font-semibold text-slate-300">{t.timeline}</h2>
-            <Timeline
-              segments={match.segments}
+                <span className="flex items-center gap-1.5">
+                  <i className="size-2.5 rounded-full bg-amber" />
+                  {away.name}
+                </span>
+              </div>
+            </div>
+            <div className="overflow-hidden rounded-2xl shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_30px_80px_-30px_rgba(62,230,160,0.35)]">
+              <Pitch
+                home={home}
+                away={away}
+                events={events}
+                featured={featured}
+                lookup={lookup}
+                attackLabel={home.name.split(" ")[0].toUpperCase()}
+              />
+            </div>
+          </Glass>
+
+          <Glass className="rounded-[28px] p-5">
+            <PressureTimeline
+              series={match.momentum_series}
               moments={match.moments}
               minute={minute}
+              homeId={home.id}
+              homeName={home.name}
+              awayName={away.name}
               onSeek={(m) => void doSeek(m)}
-              why={t.why}
+              title={t.pressure}
+              hint={t.hoverScrub}
             />
-          </div>
+          </Glass>
         </section>
 
-        <section className="flex min-h-[60vh] flex-col gap-3">
-          <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-700 bg-panel p-3 text-xs">
-            <label className="flex items-center gap-1 text-slate-300">
-              <Flag size={13} /> {t.club}
-              <select
-                value={profile.club ?? ""}
-                onChange={(e) => changeProfile({ club: e.target.value || null })}
-                className="rounded bg-slate-700 px-1 py-1 text-slate-100"
-              >
-                <option value="">{t.noClub}</option>
-                {[home, away].map((tm) => (
-                  <option key={tm.id} value={tm.id}>
-                    {tm.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="flex items-center gap-1 text-slate-300">
-              {t.focus}
-              <select
-                value={profile.focus ?? ""}
-                onChange={(e) => changeProfile({ focus: e.target.value || null })}
-                className="max-w-44 rounded bg-slate-700 px-1 py-1 text-slate-100"
-              >
-                <option value="">{t.all}</option>
-                {players.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} ({names[p.team]})
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-slate-300">{t.storyline}</h2>
-            <span className="font-mono text-[11px] text-slate-500">
-              {match.moments.filter((m) => m.type === "goal").length} goals ·{" "}
-              {match.moments.length} moments
-            </span>
-          </div>
-          <div className="max-h-[52vh] min-h-40 overflow-hidden">
-            {feed.length === 0 ? (
-              <p className="rounded-xl border border-slate-800 p-4 text-sm text-slate-500">
-                {t.noMoments}
-              </p>
-            ) : (
-              <Feed items={feed} />
-            )}
-          </div>
-        </section>
+        <aside className="flex flex-col gap-4 lg:sticky lg:top-24 lg:self-start">
+          <Narrative featured={featured} mode={profile.mode} empty={t.noMoments} />
+
+          <Metrics
+            title={t.metricsTitle}
+            possessionLabel={t.possession}
+            shotLabel={t.shotXg}
+            matchLabel={t.matchXg}
+            momentumLabel={t.momentumNow}
+            chancesLabel={t.bigChances}
+            featured={featured}
+            totals={match.totals}
+            momentum={momentum}
+            chances={chances}
+            homeName={home.name}
+            awayName={away.name}
+            lookup={lookup}
+          />
+
+          <Breakdown title={t.breakdown} featured={featured} events={events} lookup={lookup} />
+
+          <Glass className="rounded-[28px] p-5">
+            <div className="mb-3 flex flex-wrap items-center gap-3 text-xs">
+              <label className="flex items-center gap-1.5 text-white/60">
+                <Flag size={13} /> {t.club}
+                <select
+                  value={profile.club ?? ""}
+                  onChange={(e) => changeProfile({ club: e.target.value || null })}
+                  className="rounded-full bg-black/30 px-2 py-1 text-white"
+                >
+                  <option value="">{t.noClub}</option>
+                  {[home, away].map((tm) => (
+                    <option key={tm.id} value={tm.id}>
+                      {tm.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="flex items-center gap-1.5 text-white/60">
+                {t.focus}
+                <select
+                  value={profile.focus ?? ""}
+                  onChange={(e) => changeProfile({ focus: e.target.value || null })}
+                  className="max-w-44 rounded-full bg-black/30 px-2 py-1 text-white"
+                >
+                  <option value="">{t.all}</option>
+                  {players.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name} ({names[p.team]})
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <div className="mb-3 flex items-center justify-between">
+              <span className="font-display text-sm font-semibold">{t.storyline}</span>
+              <span className="font-mono text-[11px] text-white/40">
+                {feed.length}/{match.moments.length}
+              </span>
+            </div>
+            <div className="max-h-[40vh] overflow-y-auto pr-0.5">
+              {feed.length === 0 ? (
+                <p className="text-sm text-white/40">{t.noMoments}</p>
+              ) : (
+                <Feed items={feed} />
+              )}
+            </div>
+          </Glass>
+        </aside>
       </main>
 
-      <footer className="p-3 pt-0">
+      <footer className="relative mx-auto max-w-[1400px] px-4 pb-10 lg:px-8">
         <TracePanel hops={hops} title={t.trace} />
       </footer>
     </div>

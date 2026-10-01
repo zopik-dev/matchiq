@@ -1,7 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+html,
 body {
   background: #0b0f19;
+  color: #e8ecf5;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: rgba(62, 230, 160, 0.3);
+}
+
+* {
+  scrollbar-width: none;
+}
+*::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: -6;
+  }
+}
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+.dash-anim {
+  animation: dash 0.8s linear infinite;
+}
+.pulse-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pulse-ring 1.8s ease-out infinite;
 }

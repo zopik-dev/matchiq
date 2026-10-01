@@ -28,6 +28,9 @@ def test_match_payload_shape():
     assert payload["segments"]
     assert len(payload["momentum_series"]) == 91
     assert payload["state"]["playing"] is False
+    totals = payload["totals"]
+    assert totals["xg_home"] > 0 and totals["xg_away"] > 0
+    assert abs(totals["poss_home"] + totals["poss_away"] - 100) < 0.2
 
 
 def test_replay_controls_roundtrip():

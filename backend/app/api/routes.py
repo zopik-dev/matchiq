@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 from app.agents import PersonalizeProfile
 from app.api.live import LiveSession
 from app.engine import AnalyticsEngine, build_storyline
+from app.models.events import EventType
 from app.simulator.generator import load_match
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -60,9 +61,19 @@ def get_match() -> dict:
     engine = AnalyticsEngine(home_id, away_id, names)
     for event in session.events:
         engine.update(event)
+    shots = [e for e in session.events if e.type in (EventType.SHOT, EventType.GOAL)]
+    passes = [e for e in session.events if e.type == EventType.PASS]
+    home_passes = sum(1 for e in passes if e.team_id == home_id)
+    totals = {
+        "xg_home": round(sum(e.xg or 0.0 for e in shots if e.team_id == home_id), 2),
+        "xg_away": round(sum(e.xg or 0.0 for e in shots if e.team_id == away_id), 2),
+        "poss_home": round(home_passes / len(passes) * 100, 1) if passes else 50.0,
+        "poss_away": round((len(passes) - home_passes) / len(passes) * 100, 1) if passes else 50.0,
+    }
     return {
         "meta": match.meta.model_dump(mode="json"),
         "total_events": len(session.events),
+        "totals": totals,
         "moments": [
             {
                 "id": m.id,

@@ -43,9 +43,17 @@ export interface MomentumPoint {
   home: number;
 }
 
+export interface Totals {
+  xg_home: number;
+  xg_away: number;
+  poss_home: number;
+  poss_away: number;
+}
+
 export interface MatchPayload {
   meta: MatchMeta;
   total_events: number;
+  totals: Totals;
   moments: MomentInfo[];
   segments: Segment[];
   momentum_series: MomentumPoint[];
