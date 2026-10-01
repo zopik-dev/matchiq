@@ -159,6 +159,16 @@ def generate_match(seed: int, scenario: str | dict = "default") -> MatchData:
     total = min(MAX_EVENTS, max(MIN_EVENTS, round(rng.randint(MIN_EVENTS, MAX_EVENTS) * tempo)))
     goals = _goal_minutes(rng, scenario_dict)
     subs = _plan_substitutions(rng, home, away)
+    # The shifting team makes its first substitution exactly at the tactical-shift
+    # minute, so the shift is visible in the event stream (shifts come with subs).
+    shift = scenario_dict.get("tactical_shift")
+    if shift is not None:
+        shift_team = {"home": home, "away": away}[str(shift["team"])]
+        for i, (_mn, _sc, team, off, on) in enumerate(subs):
+            if team.id == shift_team.id:
+                subs[i] = (int(shift["minute"]), 0, team, off, on)
+                break
+        subs.sort(key=lambda s: (s[0], s[1]))
 
     n_system = 4 + len(subs)  # kickoffs, half/full time + substitutions
     n_ball = total - n_system - len(goals)

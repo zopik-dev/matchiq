@@ -2,6 +2,22 @@
 
 Log of non-obvious decisions (newest first).
 
+- (Phase 2) Engine has one live path: `AnalyticsEngine.update()` event by event.
+  No batch mode; file analysis feeds the same method, so streaming and CLI agree.
+- (Phase 2) Momentum is zero-sum (-100..100, home perspective): possession edge x1.2,
+  xG edge x50 (clamped +-25), pressure edge x1.5 (clamped +-15), plus a +25 goal
+  boost decaying over 10 minutes.
+- (Phase 2) A swing fires on a lead flip (hysteresis +-10) or a goal by a side
+  that was not already firmly on top (|momentum| < 25 pre-boost). Goals scored
+  while dominant (demo 23') deliberately fire no swing.
+- (Phase 2) Big-chance threshold is xG >= 0.25 so scripted demo goals (0.27-0.55)
+  always qualify as chances.
+- (Phase 2) Pressure spike = 14+ team duels (pressure/tackle/interception) in the
+  trailing 5 minutes, leading edge, 5-minute cooldown per team.
+- (Phase 2) Generator change (Phase 1 file, Phase 2 enabler): the scenario's
+  shifting team now takes its first sub exactly at the tactical-shift minute, so
+  the shift is visible in the stream. Event counts and scripted goals unchanged;
+  both committed samples were regenerated.
 - (Phase 1) `minute` is the global match minute (0-90); `period` derives from it
   (1 for 0-45, 2 for 46-90). `timestamp_s` must stay within 600 s of the
   minute/second clock to allow stoppage time.
