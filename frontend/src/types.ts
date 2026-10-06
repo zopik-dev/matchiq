@@ -76,6 +76,7 @@ export interface PitchEvent {
   type: string;
   team_id: string | null;
   player_id: string | null;
+  target_player_id: string | null;
   x: number;
   y: number;
   outcome: string;

@@ -204,6 +204,7 @@ def _slim_event(event) -> dict:
         "type": event.type.value,
         "team_id": event.team_id,
         "player_id": event.player_id,
+        "target_player_id": event.target_player_id,
         "x": event.x,
         "y": event.y,
         "outcome": event.outcome.value,
