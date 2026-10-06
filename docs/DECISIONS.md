@@ -2,6 +2,14 @@
 
 Log of non-obvious decisions (newest first).
 
+- (Phase 5) Cosmos DB over PostgreSQL: the SQL API is reachable with stdlib
+  REST + HMAC (zero new dependencies, honoring the small-deps rule); Postgres
+  stays a documented alternative behind the same interface.
+- (Phase 5) No Docker daemon on the dev laptop, so images/compose/Azure scripts
+  are authored but not executed here — they must be verified with
+  `docker compose up --build` on a Docker machine before submission.
+- (Phase 5) Nginx (not `vite preview`) serves the frontend image and proxies
+  `/api` to the backend container, keeping one origin for the app.
 - (Frontend Variant 2) Adopted the Figma prototype's visual system (glass
   cards, floodlit pitch, pressure area chart, 2x2 metrics, breakdown steps)
   on the existing Tailwind v3 setup (theme ported, no v4 migration). All

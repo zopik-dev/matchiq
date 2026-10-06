@@ -14,7 +14,7 @@ from app.agents.messages import Handoff
 from app.engine import AnalyticsEngine, build_storyline
 from app.llm import MockLLM
 from app.models.events import EventType, MatchData
-from app.store import InMemoryStore
+from app.store import build_store
 
 
 class PreparedRun:
@@ -102,7 +102,7 @@ class LiveSession:
         cached = self._prepared.get(key)
         if cached is not None:
             return cached
-        pipeline = MatchPipeline(llm=MockLLM(), store=InMemoryStore(), profile=profile)
+        pipeline = MatchPipeline(llm=MockLLM(), store=build_store(), profile=profile)
         result = pipeline.run(self.match)
         home_id = self.match.meta.teams[0].id
         away_id = self.match.meta.teams[1].id

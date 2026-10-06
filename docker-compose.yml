@@ -1,0 +1,32 @@
+# MatchIQ full system — one command: `docker compose up --build`.
+# Frontend on :5173 (proxies /api to backend), backend API on :8000.
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: infra/backend.Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      MATCHIQ_ENV: docker
+      MATCHIQ_CORS_ORIGINS: http://localhost:5173
+    volumes:
+      # Live samples without rebuilding (read-only).
+      - ./data/samples:/srv/data/samples:ro
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: infra/frontend.Dockerfile
+      # Same-origin API via the nginx /api proxy; empty base keeps relative calls.
+      args:
+        VITE_API_URL: ""
+    ports:
+      - "5173:80"
+    depends_on:
+      backend:
+        condition: service_started
+    restart: unless-stopped
