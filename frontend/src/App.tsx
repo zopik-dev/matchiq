@@ -81,6 +81,7 @@ export default function App() {
     on("trace", (d) =>
       setHops((prev) => [...prev, ...((d as { hops: Hop[] }).hops ?? [])]),
     );
+    on("done", () => source.close());
     source.onerror = () => setConnected(false);
     return () => source.close();
   }, [streamKey]);
@@ -123,6 +124,28 @@ export default function App() {
     [match],
   );
 
+  const minute = replay?.minute ?? 0;
+  const featured = feed.length > 0 ? feed[feed.length - 1] : null;
+  // Time-sliced metrics: only what happened up to the current minute.
+  // (All hooks stay above the early return — Rules of Hooks.)
+  const xgSoFar = useMemo(() => {
+    const idx = Math.max(0, Math.min(90, Math.floor(minute)));
+    const point = match?.xg_series[idx] ?? { home: 0, away: 0 };
+    return { home: point.home, away: point.away };
+  }, [match, minute]);
+  const possSoFar = useMemo(() => {
+    const idx = Math.max(0, Math.min(90, Math.floor(minute)));
+    const point = match?.poss_series[idx] ?? { home: 50, away: 50 };
+    return { home: point.home, away: point.away };
+  }, [match, minute]);
+  const chancesSoFar = useMemo(
+    () =>
+      (match?.moments ?? []).filter(
+        (m) => (m.type === "big_chance" || m.type === "goal") && m.minute <= minute,
+      ).length,
+    [match, minute],
+  );
+
   if (!match || !home || !away) {
     return (
       <div className="flex h-screen items-center justify-center bg-ink text-slate-300">
@@ -130,27 +153,6 @@ export default function App() {
       </div>
     );
   }
-
-  const minute = replay?.minute ?? 0;
-  const featured = feed.length > 0 ? feed[feed.length - 1] : null;
-  // Time-sliced metrics: only what happened up to the current minute.
-  const xgSoFar = useMemo(() => {
-    const idx = Math.max(0, Math.min(90, Math.floor(minute)));
-    const point = match.xg_series[idx] ?? { home: 0, away: 0 };
-    return { home: point.home, away: point.away };
-  }, [match, minute]);
-  const possSoFar = useMemo(() => {
-    const idx = Math.max(0, Math.min(90, Math.floor(minute)));
-    const point = match.poss_series[idx] ?? { home: 50, away: 50 };
-    return { home: point.home, away: point.away };
-  }, [match, minute]);
-  const chancesSoFar = useMemo(
-    () =>
-      match.moments.filter(
-        (m) => (m.type === "big_chance" || m.type === "goal") && m.minute <= minute,
-      ).length,
-    [match, minute],
-  );
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-ink text-white">
