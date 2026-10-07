@@ -128,7 +128,7 @@ def get_demo_context() -> tuple[MatchData, AnalyticsEngine]:
         _match_cache = load_match(path)
         home_id = _match_cache.meta.teams[0].id
         away_id = _match_cache.meta.teams[1].id
-        names = {t.id: t.name for t in _match_cache.meta.teams}
+        names = _match_cache.meta.display_names()
         _engine_cache = AnalyticsEngine(home_id, away_id, names)
         for event in _match_cache.events:
             _engine_cache.update(event)
@@ -187,7 +187,7 @@ def answer_question(
     match, engine = get_demo_context()
     home_id = match.meta.teams[0].id
     away_id = match.meta.teams[1].id
-    names = {t.id: t.name for t in match.meta.teams}
+    names = match.meta.display_names()
     parsed = parse_question(query)
     minute = parsed["minute"]
     topic = parsed["topic"]
@@ -284,16 +284,19 @@ def _fallback_text(
 ) -> str:
     team = names.get(str(evidence.get("team_id", "")), "-")
     minute = evidence.get("minute", "?")
+
+    def who(key: str) -> str:
+        raw = evidence.get(key)
+        return names.get(str(raw), str(raw)) if raw else "-"
+
     if moment is not None and moment.type == "goal":
         if lang == "uk":
             return (
-                f"{evidence.get('scorer')} забиває за {team} на {minute}-й хвилині "
+                f"{who('scorer')} забиває за {team} на {minute}-й хвилині "
                 f"(рахунок {evidence.get('score')})."
             )
-        return (
-            f"{evidence.get('scorer')} scores for {team} in minute {minute} "
-            f"(now {evidence.get('score')})."
-        )
+        score = evidence.get("score")
+        return f"{who('scorer')} scores for {team} in minute {minute} (now {score})."
     if lang == "uk":
         after = evidence.get("momentum", evidence.get("momentum_home_after", "?"))
         return f"{team}: імпульс {after} на {minute}-й хвилині."

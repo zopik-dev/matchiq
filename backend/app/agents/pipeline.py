@@ -144,7 +144,7 @@ class MatchPipeline:
         match_id = match.meta.match_id
         self._match_id = match_id
         home_id, away_id = match.meta.teams[0].id, match.meta.teams[1].id
-        names = {t.id: t.name for t in match.meta.teams}
+        names = match.meta.display_names()
         self.store.save_match(match_id, match.meta.model_dump(mode="json"))
 
         event_agent = EventAgent()

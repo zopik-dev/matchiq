@@ -229,8 +229,8 @@ export default function Pitch({
               height={Math.max(1, b.y1 - b.y0)}
               fill="none"
               stroke={b.side === "home" ? HOME_C : AWAY_C}
-              strokeOpacity="0.45"
-              strokeWidth="0.35"
+              strokeOpacity="0.25"
+              strokeWidth="0.3"
               strokeDasharray="1.6 1.2"
               rx="1.5"
               style={{ transition: EASE }}
@@ -320,17 +320,30 @@ export default function Pitch({
           </g>
         )}
 
-        {actors.map((a) => (
-          <g key={a.d.p.id} transform={`translate(${a.x.toFixed(2)} ${a.y.toFixed(2)})`} style={{ transition: EASE }}>
-            <circle r="2.6" fill={a.d.side === "home" ? HOME_C : AWAY_C} stroke="#fff" strokeWidth="0.4" />
-            <text y="0.9" textAnchor="middle" fontSize="2.4" fontWeight="700" fill="#0b0f19">
-              {a.info.number}
-            </text>
-            <text y="-4" textAnchor="middle" fontSize="2.2" fontWeight="600" fill="#fff">
-              {a.info.name.split(" ").slice(-1)}
-            </text>
-          </g>
-        ))}
+        {actors.map((a) => {
+          const surname = a.info.name.split(" ").slice(-1)[0] ?? "";
+          const pillW = surname.length * 1.3 + 2.4;
+          return (
+            <g key={a.d.p.id} transform={`translate(${a.x.toFixed(2)} ${a.y.toFixed(2)})`} style={{ transition: EASE }}>
+              <circle r="2.6" fill={a.d.side === "home" ? HOME_C : AWAY_C} stroke="#fff" strokeWidth="0.4" />
+              <text y="0.9" textAnchor="middle" fontSize="2.4" fontWeight="700" fill="#0b0f19">
+                {a.info.number}
+              </text>
+              <rect
+                x={-pillW / 2}
+                y="-7.2"
+                width={pillW}
+                height="3.4"
+                rx="1.7"
+                fill="#0b0f19"
+                fillOpacity="0.78"
+              />
+              <text y="-4.6" textAnchor="middle" fontSize="2.2" fontWeight="600" fill="#fff">
+                {surname}
+              </text>
+            </g>
+          );
+        })}
 
         {last && (
           <g transform={`translate(${ball.x.toFixed(2)} ${ball.y.toFixed(2)})`} style={{ transition: EASE }}>

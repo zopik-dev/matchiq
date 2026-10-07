@@ -36,6 +36,7 @@ export default function App() {
   const [feed, setFeed] = useState<MomentDetail[]>([]);
   const [hops, setHops] = useState<Hop[]>([]);
   const [momentum, setMomentum] = useState<{ home: number } | null>(null);
+  const [sideTab, setSideTab] = useState<"insight" | "copilot">("insight");
   const profileRef = useRef(profile);
   profileRef.current = profile;
 
@@ -132,9 +133,24 @@ export default function App() {
 
   const minute = replay?.minute ?? 0;
   const featured = feed.length > 0 ? feed[feed.length - 1] : null;
-  const chances = match.moments.filter(
-    (m) => m.type === "big_chance" || m.type === "goal",
-  ).length;
+  // Time-sliced metrics: only what happened up to the current minute.
+  const xgSoFar = useMemo(() => {
+    const idx = Math.max(0, Math.min(90, Math.floor(minute)));
+    const point = match.xg_series[idx] ?? { home: 0, away: 0 };
+    return { home: point.home, away: point.away };
+  }, [match, minute]);
+  const possSoFar = useMemo(() => {
+    const idx = Math.max(0, Math.min(90, Math.floor(minute)));
+    const point = match.poss_series[idx] ?? { home: 50, away: 50 };
+    return { home: point.home, away: point.away };
+  }, [match, minute]);
+  const chancesSoFar = useMemo(
+    () =>
+      match.moments.filter(
+        (m) => (m.type === "big_chance" || m.type === "goal") && m.minute <= minute,
+      ).length,
+    [match, minute],
+  );
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-ink text-white">
@@ -205,88 +221,111 @@ export default function App() {
               onSeek={(m) => void doSeek(m)}
               title={t.pressure}
               hint={t.hoverScrub}
+              resolvePlayer={(id) => (id ? lookup(id) : null)}
             />
           </Glass>
         </section>
 
         <aside className="flex flex-col gap-4 lg:sticky lg:top-24 lg:self-start">
-          <Narrative featured={featured} mode={profile.mode} empty={t.noMoments} />
+          <div role="tablist" className="flex gap-1 self-start rounded-full bg-black/30 p-1">
+            {(["insight", "copilot"] as const).map((tab) => (
+              <button
+                key={tab}
+                role="tab"
+                aria-selected={sideTab === tab}
+                onClick={() => setSideTab(tab)}
+                className={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${
+                  sideTab === tab ? "bg-white text-ink shadow-lg" : "text-white/60 hover:text-white"
+                }`}
+              >
+                {tab === "insight" ? t.tabInsight : t.copilotTitle}
+              </button>
+            ))}
+          </div>
 
-          <Copilot
-            profile={profile}
-            homeName={home.name}
-            awayName={away.name}
-            title={t.copilotTitle}
-            placeholder={t.copilotPlaceholder}
-            thinking={t.copilotThinking}
-            errorText={t.copilotError}
-          />
+          {sideTab === "insight" ? (
+            <>
+              <Narrative featured={featured} mode={profile.mode} empty={t.noMoments} />
 
-          <Metrics
-            title={t.metricsTitle}
-            possessionLabel={t.possession}
-            shotLabel={t.shotXg}
-            matchLabel={t.matchXg}
-            momentumLabel={t.momentumNow}
-            chancesLabel={t.bigChances}
-            featured={featured}
-            totals={match.totals}
-            momentum={momentum}
-            chances={chances}
-            homeName={home.name}
-            awayName={away.name}
-            lookup={lookup}
-          />
+              <Metrics
+                title={t.metricsTitle}
+                possessionLabel={t.possession}
+                shotLabel={t.shotXg}
+                matchLabel={t.matchXg}
+                momentumLabel={t.momentumNow}
+                chancesLabel={t.bigChances}
+                minute={minute}
+                featured={featured}
+                xg={xgSoFar}
+                poss={possSoFar}
+                momentum={momentum}
+                chancesSoFar={chancesSoFar}
+                homeName={home.name}
+                awayName={away.name}
+                lookup={lookup}
+              />
 
-          <Breakdown title={t.breakdown} featured={featured} events={events} lookup={lookup} />
+              <Breakdown title={t.breakdown} featured={featured} events={events} lookup={lookup} />
 
-          <Glass className="rounded-[28px] p-5">
-            <div className="mb-3 flex flex-wrap items-center gap-3 text-xs">
-              <label className="flex items-center gap-1.5 text-white/60">
-                <Flag size={13} /> {t.club}
-                <select
-                  value={profile.club ?? ""}
-                  onChange={(e) => changeProfile({ club: e.target.value || null })}
-                  className="rounded-full bg-black/30 px-2 py-1 text-white"
-                >
-                  <option value="">{t.noClub}</option>
-                  {[home, away].map((tm) => (
-                    <option key={tm.id} value={tm.id}>
-                      {tm.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="flex items-center gap-1.5 text-white/60">
-                {t.focus}
-                <select
-                  value={profile.focus ?? ""}
-                  onChange={(e) => changeProfile({ focus: e.target.value || null })}
-                  className="max-w-44 rounded-full bg-black/30 px-2 py-1 text-white"
-                >
-                  <option value="">{t.all}</option>
-                  {players.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name} ({names[p.team]})
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-            <div className="mb-3 flex items-center justify-between">
-              <span className="font-display text-sm font-semibold">{t.storyline}</span>
-              <span className="font-mono text-[11px] text-white/40">
-                {feed.length}/{match.moments.length}
-              </span>
-            </div>
-            <div className="max-h-[40vh] overflow-y-auto pr-0.5">
-              {feed.length === 0 ? (
-                <p className="text-sm text-white/40">{t.noMoments}</p>
-              ) : (
-                <Feed items={feed} />
-              )}
-            </div>
-          </Glass>
+              <Glass className="rounded-[28px] px-4 py-3">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px]">
+                  <label className="flex items-center gap-1.5 text-white/60">
+                    <Flag size={12} /> {t.club}
+                    <select
+                      value={profile.club ?? ""}
+                      onChange={(e) => changeProfile({ club: e.target.value || null })}
+                      className="max-w-32 rounded-full bg-black/30 px-2 py-1 text-white"
+                    >
+                      <option value="">{t.noClub}</option>
+                      {[home, away].map((tm) => (
+                        <option key={tm.id} value={tm.id}>
+                          {tm.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="flex min-w-0 flex-1 items-center gap-1.5 text-white/60">
+                    {t.focus}
+                    <select
+                      value={profile.focus ?? ""}
+                      onChange={(e) => changeProfile({ focus: e.target.value || null })}
+                      className="min-w-0 flex-1 rounded-full bg-black/30 px-2 py-1 text-white"
+                    >
+                      <option value="">{t.all}</option>
+                      {players.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name} ({names[p.team]})
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+                <div className="mb-2 mt-3 flex items-center justify-between">
+                  <span className="font-display text-sm font-semibold">{t.storyline}</span>
+                  <span className="font-mono text-[11px] text-white/40">
+                    {feed.length}/{match.moments.length}
+                  </span>
+                </div>
+                <div className="max-h-[32vh] overflow-y-auto pr-0.5">
+                  {feed.length === 0 ? (
+                    <p className="text-sm text-white/40">{t.noMoments}</p>
+                  ) : (
+                    <Feed items={feed} />
+                  )}
+                </div>
+              </Glass>
+            </>
+          ) : (
+            <Copilot
+              profile={profile}
+              homeName={home.name}
+              awayName={away.name}
+              title={t.copilotTitle}
+              placeholder={t.copilotPlaceholder}
+              thinking={t.copilotThinking}
+              errorText={t.copilotError}
+            />
+          )}
         </aside>
       </main>
 

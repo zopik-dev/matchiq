@@ -11,6 +11,7 @@ export default function PressureTimeline({
   onSeek,
   title,
   hint,
+  resolvePlayer,
 }: {
   series: MomentumPoint[];
   moments: MomentInfo[];
@@ -21,6 +22,7 @@ export default function PressureTimeline({
   onSeek: (minute: number) => void;
   title: string;
   hint: string;
+  resolvePlayer: (id: string | null) => { name: string } | null;
 }) {
   const [hover, setHover] = useState<number | null>(null);
   const W = 900;
@@ -143,16 +145,20 @@ export default function PressureTimeline({
             : hint}
         </span>
         <span className="flex gap-3">
-          {goals.map((g) => (
-            <button
-              key={g.id}
-              onClick={() => onSeek(g.minute)}
-              className="tabular-nums hover:text-white"
-            >
-              <b className="text-white">{g.minute}&prime;</b>{" "}
-              {(g.evidence["scorer"] as string | undefined)?.split(" ").slice(-1) ?? ""}
-            </button>
-          ))}
+          {goals.map((g) => {
+            const raw = g.evidence["scorer"];
+            const surname =
+              resolvePlayer(typeof raw === "string" ? raw : null)?.name.split(" ").slice(-1)[0] ?? "";
+            return (
+              <button
+                key={g.id}
+                onClick={() => onSeek(g.minute)}
+                className="tabular-nums hover:text-white"
+              >
+                <b className="text-white">{g.minute}&prime;</b> {surname}
+              </button>
+            );
+          })}
         </span>
       </div>
     </div>

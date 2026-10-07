@@ -1,4 +1,4 @@
-import type { MomentDetail, Totals } from "../types";
+import type { MomentDetail } from "../types";
 import Glass from "./Glass";
 
 function Stat({
@@ -34,10 +34,12 @@ export default function Metrics({
   matchLabel,
   momentumLabel,
   chancesLabel,
+  minute,
   featured,
-  totals,
+  xg,
+  poss,
   momentum,
-  chances,
+  chancesSoFar,
   homeName,
   awayName,
   lookup,
@@ -48,29 +50,32 @@ export default function Metrics({
   matchLabel: string;
   momentumLabel: string;
   chancesLabel: string;
+  minute: number;
   featured: MomentDetail | null;
-  totals: Totals;
+  xg: { home: number; away: number };
+  poss: { home: number; away: number };
   momentum: { home: number } | null;
-  chances: number;
+  chancesSoFar: number;
   homeName: string;
   awayName: string;
   lookup: (id: string | null) => { name: string; number: number } | null;
 }) {
-  const shotXg = featured && typeof featured.evidence["xg"] === "number"
-    ? (featured.evidence["xg"] as number)
-    : null;
+  const shotXg =
+    featured && typeof featured.evidence["xg"] === "number"
+      ? (featured.evidence["xg"] as number)
+      : null;
   const shotWho = featured
-    ? lookup(
+    ? (lookup(
         (featured.evidence["scorer"] as string | undefined) ??
           (featured.evidence["player"] as string | undefined) ??
           null,
-      )?.name ?? null
+      )?.name ?? null)
     : null;
 
   return (
     <Glass className="rounded-[28px] p-5">
       <div className="mb-3 text-[11px] uppercase tracking-[0.16em] text-white/45">
-        {title} · {featured ? `${featured.minute}′` : "—"}
+        {title} · {minute.toFixed(0)}&prime;
       </div>
       <div className="grid grid-cols-2 gap-3">
         <Stat
@@ -81,25 +86,29 @@ export default function Metrics({
         />
         <Stat
           label={matchLabel}
-          value={`${totals.xg_home.toFixed(1)} – ${totals.xg_away.toFixed(1)}`}
+          value={`${xg.home.toFixed(1)} – ${xg.away.toFixed(1)}`}
           sub={homeName}
         />
         <Stat
           label={momentumLabel}
-          value={momentum !== null ? `${momentum.home >= 0 ? "+" : ""}${momentum.home.toFixed(0)}` : "—"}
+          value={
+            momentum !== null
+              ? `${momentum.home >= 0 ? "+" : ""}${momentum.home.toFixed(0)}`
+              : "—"
+          }
           sub={momentum !== null ? (momentum.home >= 0 ? homeName : awayName) : undefined}
         />
-        <Stat label={chancesLabel} value={`${chances}`} sub={featured ? `${featured.minute}′` : undefined} />
+        <Stat label={chancesLabel} value={`${chancesSoFar}`} sub={`${minute.toFixed(0)}′`} />
       </div>
       <div className="mt-4">
         <div className="mb-1.5 flex justify-between text-xs text-white/55">
           <span>{possessionLabel}</span>
           <span className="tabular-nums">
-            {totals.poss_home.toFixed(0)}% · {totals.poss_away.toFixed(0)}%
+            {poss.home.toFixed(0)}% · {poss.away.toFixed(0)}%
           </span>
         </div>
         <div className="h-1.5 overflow-hidden rounded-full bg-amber/70">
-          <div className="h-full rounded-full bg-sky" style={{ width: `${totals.poss_home}%` }} />
+          <div className="h-full rounded-full bg-sky" style={{ width: `${poss.home}%` }} />
         </div>
       </div>
     </Glass>

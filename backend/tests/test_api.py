@@ -31,6 +31,22 @@ def test_match_payload_shape():
     totals = payload["totals"]
     assert totals["xg_home"] > 0 and totals["xg_away"] > 0
     assert abs(totals["poss_home"] + totals["poss_away"] - 100) < 0.2
+    # Cumulative series: 91 points, monotonic, finals match totals.
+    xg = payload["xg_series"]
+    poss = payload["poss_series"]
+    assert [p["minute"] for p in xg] == list(range(91))
+    assert [p["minute"] for p in poss] == list(range(91))
+    for prev, cur in zip(xg, xg[1:], strict=False):
+        assert cur["home"] >= prev["home"] and cur["away"] >= prev["away"]
+    assert (xg[-1]["home"], xg[-1]["away"]) == (totals["xg_home"], totals["xg_away"])
+    assert abs(poss[-1]["home"] - totals["poss_home"]) < 0.15
+    # Minute 14 (0-0): only early chances counted, far from final totals.
+    early = xg[14]
+    assert early["home"] < totals["xg_home"] / 2
+    assert early["away"] < 1.0
+    # Moment titles show names, never raw ids.
+    assert "Ellis Thornton" in [m["title"] for m in payload["moments"] if m["type"] == "goal"][0]
+    assert not any("NGU_" in m["title"] or "EVR_" in m["title"] for m in payload["moments"])
 
 
 def test_replay_controls_roundtrip():

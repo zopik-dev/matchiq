@@ -49,15 +49,20 @@ class ExplainAgent:
         team = names.get(moment.team_id or "", moment.team_id or "-")
         minute = moment.minute
         ev = moment.evidence
+
+        def who(key: str) -> str:
+            raw = ev.get(key)
+            return names.get(str(raw), str(raw)) if raw else "-"
+
         if moment.type == "goal":
-            return f"{ev.get('scorer')} scores for {team} ({minute}'). Now {ev.get('score')}."
+            return f"{who('scorer')} scores for {team} ({minute}'). Now {ev.get('score')}."
         if moment.type == "big_chance":
-            return f"{ev.get('player')} threatens for {team} ({minute}'): xG {ev.get('xg')}."
+            return f"{who('player')} threatens for {team} ({minute}'): xG {ev.get('xg')}."
         if moment.type == "pressure_spike":
             return f"{team} press: {ev.get('pressure_events')} duels in 5 minutes ({minute}')."
         if moment.type == "momentum_swing":
             return f"Momentum to {team} ({minute}')."
-        return f"{team} substitution ({minute}'): {ev.get('player_off')} off."
+        return f"{team} substitution ({minute}'): {who('player_off')} off."
 
     def handle(
         self,

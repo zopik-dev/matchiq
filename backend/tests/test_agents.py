@@ -39,7 +39,7 @@ class HallucinatingLLM:
 
 def _goal_moment():
     match = load_match(SAMPLE)
-    names = {t.id: t.name for t in match.meta.teams}
+    names = match.meta.display_names()
     engine = AnalyticsEngine(match.meta.teams[0].id, match.meta.teams[1].id, names)
     for event in match.events:
         engine.update(event)
@@ -73,7 +73,7 @@ def test_explain_agent_grounded_with_mock():
     context = Ctx().handle(goal, stats, {"NGU": 1, "EVR": 0}, None, "m1")
     message, degraded = ExplainAgent(MockLLM()).handle(goal, context, names, "m2")
     assert not degraded
-    assert "NGU_11" in message.payload["text"]
+    assert "Ellis Thornton" in message.payload["text"]
     evidence = ExplainAgent(MockLLM()).llm_evidence(goal, context)
     assert check_grounding(message.payload["text"], evidence)
 

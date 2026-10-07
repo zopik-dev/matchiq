@@ -31,6 +31,7 @@ export const STR = {
     copilotPlaceholder: "Ask MatchIQ about tactics, momentum, or moments...",
     copilotThinking: "Reading the match engine…",
     copilotError: "Copilot is unreachable. Is the backend running?",
+    tabInsight: "AI Narrative & Stats",
   },
   uk: {
     storyline: "Стрічка сюжету MatchIQ AI",
@@ -64,6 +65,7 @@ export const STR = {
     copilotPlaceholder: "Запитайте MatchIQ про тактику, імпульс чи моменти...",
     copilotThinking: "Читаю дані матчу…",
     copilotError: "Помічник недоступний. Чи запущено бекенд?",
+    tabInsight: "ШІ-наратив і статистика",
   },
 } as const;
 

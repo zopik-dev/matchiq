@@ -66,7 +66,7 @@ def get_match() -> dict:
     match = session.match
     home_id = match.meta.teams[0].id
     away_id = match.meta.teams[1].id
-    names = {t.id: t.name for t in match.meta.teams}
+    names = match.meta.display_names()
     engine = AnalyticsEngine(home_id, away_id, names)
     for event in session.events:
         engine.update(event)
@@ -79,10 +79,41 @@ def get_match() -> dict:
         "poss_home": round(home_passes / len(passes) * 100, 1) if passes else 50.0,
         "poss_away": round((len(passes) - home_passes) / len(passes) * 100, 1) if passes else 50.0,
     }
+    # Cumulative per-minute series so the UI shows values "so far", not finals.
+    xg_series: list[dict] = []
+    poss_series: list[dict] = []
+    run_xg = {home_id: 0.0, away_id: 0.0}
+    run_pass = {home_id: 0, away_id: 0}
+    by_minute: dict[int, list] = {}
+    for event in session.events:
+        by_minute.setdefault(event.minute, []).append(event)
+    for minute in range(0, 91):
+        for event in by_minute.get(minute, []):
+            if event.type in (EventType.SHOT, EventType.GOAL) and event.team_id:
+                run_xg[event.team_id] = run_xg.get(event.team_id, 0.0) + (event.xg or 0.0)
+            if event.type == EventType.PASS and event.team_id:
+                run_pass[event.team_id] = run_pass.get(event.team_id, 0) + 1
+        total_pass = run_pass[home_id] + run_pass[away_id]
+        xg_series.append(
+            {
+                "minute": minute,
+                "home": round(run_xg[home_id], 2),
+                "away": round(run_xg[away_id], 2),
+            }
+        )
+        poss_series.append(
+            {
+                "minute": minute,
+                "home": round(run_pass[home_id] / total_pass * 100, 1) if total_pass else 50.0,
+                "away": round(run_pass[away_id] / total_pass * 100, 1) if total_pass else 50.0,
+            }
+        )
     return {
         "meta": match.meta.model_dump(mode="json"),
         "total_events": len(session.events),
         "totals": totals,
+        "xg_series": xg_series,
+        "poss_series": poss_series,
         "moments": [
             {
                 "id": m.id,

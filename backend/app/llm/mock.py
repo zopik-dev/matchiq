@@ -138,10 +138,16 @@ def _slots(evidence: dict[str, Any], names: dict[str, str]) -> dict[str, str]:
         team_id = evidence.get(key)
         return names.get(team_id, str(team_id)) if team_id else "-"
 
+    def person(key: str) -> str:
+        player_id = evidence.get(key)
+        if not player_id:
+            return "-"
+        return names.get(str(player_id), str(player_id))
+
     return {
         "team": team("team_id") if "team_id" in evidence else team("scorer_team"),
-        "scorer": _fmt(evidence.get("scorer")),
-        "player": _fmt(evidence.get("player")),
+        "scorer": person("scorer"),
+        "player": person("player"),
         "minute": _fmt(evidence.get("minute")),
         "xg": _fmt(evidence.get("xg")),
         "score": _fmt(evidence.get("score")),
@@ -150,8 +156,8 @@ def _slots(evidence: dict[str, Any], names: dict[str, str]) -> dict[str, str]:
         "opponent_pressure_events": _fmt(evidence.get("opponent_pressure_events")),
         "after": _fmt(evidence.get("momentum_home_after")),
         "before": _fmt(evidence.get("momentum_home_before")),
-        "off": _fmt(evidence.get("player_off")),
-        "on": _fmt(evidence.get("player_on")),
+        "off": person("player_off"),
+        "on": person("player_on"),
         "possession": _fmt(evidence.get("possession_pct")),
         "momentum": _fmt(evidence.get("momentum")),
     }

@@ -39,30 +39,27 @@ export default function Breakdown({
   lookup: (id: string | null) => { name: string } | null;
 }) {
   const steps = featured
-    ? events.filter((e) => e.timestamp_s <= featured.timestamp_s).slice(-4)
+    ? events.filter((e) => e.timestamp_s <= featured.timestamp_s).slice(-3)
     : [];
+  if (steps.length === 0) return null;
   return (
     <Glass className="rounded-[28px] p-5">
       <div className="mb-4 text-[11px] uppercase tracking-[0.16em] text-white/45">{title}</div>
-      {steps.length === 0 ? (
-        <div className="text-sm text-white/40">—</div>
-      ) : (
-        <ol className="relative space-y-4 border-l border-white/10 pl-5">
-          {steps.map((s, i) => (
-            <li key={s.id} className="relative">
-              <span
-                className={`absolute -left-[26px] top-1 size-2.5 rounded-full ring-4 ring-[#161c2c] ${
-                  i === steps.length - 1 ? "bg-mint" : "bg-white/40"
-                }`}
-              />
-              <div className="text-xs font-semibold tabular-nums text-mint">
-                {Math.floor(s.timestamp_s / 60)}:{`${Math.floor(s.timestamp_s % 60)}`.padStart(2, "0")}
-              </div>
-              <div className="text-sm leading-snug text-white/75">{describe(s, lookup)}</div>
-            </li>
-          ))}
-        </ol>
-      )}
+      <ol className="relative space-y-4 border-l border-white/10 pl-5">
+        {steps.map((s, i) => (
+          <li key={s.id} className="relative">
+            <span
+              className={`absolute -left-[26px] top-1 size-2.5 rounded-full ring-4 ring-[#161c2c] ${
+                i === steps.length - 1 ? "bg-mint" : "bg-white/40"
+              }`}
+            />
+            <div className="text-xs font-semibold tabular-nums text-mint">
+              {Math.floor(s.timestamp_s / 60)}:{`${Math.floor(s.timestamp_s % 60)}`.padStart(2, "0")}
+            </div>
+            <div className="text-sm leading-snug text-white/75">{describe(s, lookup)}</div>
+          </li>
+        ))}
+      </ol>
     </Glass>
   );
 }

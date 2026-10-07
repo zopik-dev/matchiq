@@ -98,7 +98,7 @@ class AnalyticsEngine:
             minute=event.minute,
             timestamp_s=event.timestamp_s,
             team_id=event.team_id,
-            title=f"GOAL {self._name(event.team_id)} ({event.player_id})",
+            title=f"GOAL {self._name(event.team_id)} ({self._name(event.player_id)})",
             evidence={
                 "scorer": event.player_id,
                 "xg": event.xg,
@@ -227,7 +227,7 @@ class AnalyticsEngine:
             timestamp_s=event.timestamp_s,
             team_id=event.team_id,
             title=f"Tactical shift {self._name(event.team_id)} "
-            f"({event.player_id} -> {event.target_player_id})",
+            f"({self._name(event.player_id)} -> {self._name(event.target_player_id)})",
             evidence={
                 "player_off": event.player_id,
                 "player_on": event.target_player_id,

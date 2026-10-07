@@ -169,6 +169,18 @@ class MatchMeta(BaseModel):
             raise ValueError("the two teams must have distinct ids")
         return teams
 
+    def display_names(self) -> dict[str, str]:
+        """Map every team AND player id to its display name for user-facing text.
+
+        Evidence payloads keep raw ids (stable keys for grounding); only
+        rendered strings resolve through this map, with raw-id fallback.
+        """
+        names = {team.id: team.name for team in self.teams}
+        for team in self.teams:
+            for player in team.roster:
+                names[player.id] = player.name
+        return names
+
 
 class MatchData(BaseModel):
     """A full synthetic match: metadata plus ordered events."""

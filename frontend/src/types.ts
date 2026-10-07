@@ -43,6 +43,18 @@ export interface MomentumPoint {
   home: number;
 }
 
+export interface XgPoint {
+  minute: number;
+  home: number;
+  away: number;
+}
+
+export interface PossPoint {
+  minute: number;
+  home: number;
+  away: number;
+}
+
 export interface Totals {
   xg_home: number;
   xg_away: number;
@@ -57,6 +69,8 @@ export interface MatchPayload {
   moments: MomentInfo[];
   segments: Segment[];
   momentum_series: MomentumPoint[];
+  xg_series: XgPoint[];
+  poss_series: PossPoint[];
   state: ReplayState;
 }
 

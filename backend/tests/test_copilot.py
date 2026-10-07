@@ -59,7 +59,7 @@ def test_answers_are_grounded_in_evidence():
 
 def test_goal_answer_names_scorer_and_score():
     result = answer_question("Why did Eastvale score at 57'?", mode="analyst")
-    assert "EVR_10" in result["answer"] and "1-1" in result["answer"]
+    assert "Felix Okafor" in result["answer"] and "1-1" in result["answer"]
 
 
 def test_ukrainian_beginner_answer():
@@ -70,7 +70,7 @@ def test_ukrainian_beginner_answer():
 
 def test_exploding_llm_still_returns_grounded_answer():
     result = answer_question("Why did Eastvale score at 57'?", llm=ExplodingLLM())
-    assert "EVR_10" in result["answer"]
+    assert "Felix Okafor" in result["answer"]
     assert check_grounding(result["answer"], result["evidence"])
 
 
