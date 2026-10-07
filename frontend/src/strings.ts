@@ -27,6 +27,10 @@ export const STR = {
     bigChances: "Big chances",
     hoverScrub: "Hover to scrub · click a marker to seek",
     backendDown: "is the backend running on :8000?",
+    copilotTitle: "Tactical Copilot",
+    copilotPlaceholder: "Ask MatchIQ about tactics, momentum, or moments...",
+    copilotThinking: "Reading the match engine…",
+    copilotError: "Copilot is unreachable. Is the backend running?",
   },
   uk: {
     storyline: "Стрічка сюжету MatchIQ AI",
@@ -56,6 +60,10 @@ export const STR = {
     bigChances: "Гарні нагоди",
     hoverScrub: "Наведіть для перегляду · клік по маркеру для переходу",
     backendDown: "чи запущено бекенд на :8000?",
+    copilotTitle: "Тактичний помічник",
+    copilotPlaceholder: "Запитайте MatchIQ про тактику, імпульс чи моменти...",
+    copilotThinking: "Читаю дані матчу…",
+    copilotError: "Помічник недоступний. Чи запущено бекенд?",
   },
 } as const;
 

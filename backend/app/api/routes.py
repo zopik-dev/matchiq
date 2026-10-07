@@ -8,8 +8,10 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from app.agents import PersonalizeProfile
+from app.agents.copilot import answer_question
 from app.api.live import LiveSession
 from app.engine import AnalyticsEngine, build_storyline
+from app.llm import AzureFoundryLLM, MockLLM
 from app.models.events import EventType
 from app.simulator.generator import load_match
 
@@ -40,6 +42,13 @@ class SpeedBody(BaseModel):
 
 class SeekBody(BaseModel):
     minute: float = Field(ge=0)
+
+
+class AskBody(BaseModel):
+    query: str = Field(min_length=1, max_length=500)
+    minute: int | None = Field(default=None, ge=0, le=120)
+    mode: str = "fan"
+    lang: str = "en"
 
 
 def _profile(mode: str, lang: str, club: str | None, focus: str | None) -> PersonalizeProfile:
@@ -149,3 +158,16 @@ async def replay_stream(
             yield f"event: {kind}\ndata: {json.dumps(payload)}\n\n"
 
     return StreamingResponse(generate(), media_type="text/event-stream")
+
+
+@router.post("/copilot/ask")
+def copilot_ask(body: AskBody) -> dict:
+    """Answer a tactical question, grounded strictly in engine evidence."""
+    if body.mode not in ("analyst", "fan", "beginner"):
+        raise HTTPException(status_code=422, detail="mode must be analyst|fan|beginner")
+    if body.lang not in ("en", "uk"):
+        raise HTTPException(status_code=422, detail="lang must be en|uk")
+    azure = AzureFoundryLLM()
+    llm = azure if azure.available() else MockLLM()
+    query = body.query if body.minute is None else f"{body.query} ({body.minute}')"
+    return answer_question(query, mode=body.mode, language=body.lang, llm=llm)

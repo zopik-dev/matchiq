@@ -2,6 +2,7 @@ import { Flag } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { controls, fetchMatch, streamUrl } from "./api";
 import Breakdown from "./components/Breakdown";
+import Copilot from "./components/Copilot";
 import Feed from "./components/Feed";
 import Glass from "./components/Glass";
 import Header, { BrandMark } from "./components/Header";
@@ -210,6 +211,16 @@ export default function App() {
 
         <aside className="flex flex-col gap-4 lg:sticky lg:top-24 lg:self-start">
           <Narrative featured={featured} mode={profile.mode} empty={t.noMoments} />
+
+          <Copilot
+            profile={profile}
+            homeName={home.name}
+            awayName={away.name}
+            title={t.copilotTitle}
+            placeholder={t.copilotPlaceholder}
+            thinking={t.copilotThinking}
+            errorText={t.copilotError}
+          />
 
           <Metrics
             title={t.metricsTitle}

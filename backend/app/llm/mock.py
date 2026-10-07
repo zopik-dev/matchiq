@@ -48,6 +48,53 @@ _TEMPLATES: dict[str, dict[str, dict[str, str]]] = {
             "tactical_shift": "{team} перебудовується свіжими силами ({off} замість {on}).",
         },
     },
+    "copilot": {
+        "en": {
+            "goal": (
+                "Because {scorer} finished a {xg} xG chance for {team} "
+                "in minute {minute}, making it {score}."
+            ),
+            "big_chance": (
+                "Because {player} tested the keeper for {team} in minute {minute} with xG {xg}."
+            ),
+            "pressure_spike": (
+                "Because {team} logged {pressure_events} duels in 5 minutes "
+                "against {opponent_pressure_events} from the opponent."
+            ),
+            "momentum_swing": (
+                "Because the home index moved to {after} (from {before}), favoring {team}."
+            ),
+            "tactical_shift": (
+                "Because {team} changed shape in minute {minute}: {off} off, {on} on."
+            ),
+            "general": (
+                "At minute {minute}, {team} holds {possession}% possession "
+                "with momentum {momentum}."
+            ),
+        },
+        "uk": {
+            "goal": (
+                "Тому що {scorer} реалізував момент xG {xg} за {team} "
+                "на {minute}-й хвилині, рахунок {score}."
+            ),
+            "big_chance": (
+                "Тому що {player} перевірив воротаря за {team} на {minute}-й хвилині з xG {xg}."
+            ),
+            "pressure_spike": (
+                "Тому що {team} провів {pressure_events} єдиноборств за 5 хвилин "
+                "проти {opponent_pressure_events} у суперника."
+            ),
+            "momentum_swing": (
+                "Тому що індекс господарів став {after} (було {before}) на користь {team}."
+            ),
+            "tactical_shift": (
+                "Тому що {team} змінив схему на {minute}-й хвилині: {off} йде, {on} виходить."
+            ),
+            "general": (
+                "На {minute}-й хвилині {team} має {possession}% володіння з імпульсом {momentum}."
+            ),
+        },
+    },
 }
 
 
@@ -105,4 +152,6 @@ def _slots(evidence: dict[str, Any], names: dict[str, str]) -> dict[str, str]:
         "before": _fmt(evidence.get("momentum_home_before")),
         "off": _fmt(evidence.get("player_off")),
         "on": _fmt(evidence.get("player_on")),
+        "possession": _fmt(evidence.get("possession_pct")),
+        "momentum": _fmt(evidence.get("momentum")),
     }
