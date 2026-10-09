@@ -1,5 +1,7 @@
 """Tests for the Ask MatchIQ copilot: parsing, grounding, fallback, endpoint."""
 
+from pathlib import Path
+
 from fastapi.testclient import TestClient
 
 from app.agents.copilot import answer_question, find_moment, get_demo_context, parse_question
@@ -7,6 +9,8 @@ from app.llm import check_grounding
 from app.main import app
 
 client = TestClient(app)
+
+SAMPLE = Path(__file__).resolve().parents[2] / "data" / "samples" / "sample_demo_seed42.json"
 
 
 class ExplodingLLM:
@@ -57,9 +61,20 @@ def test_answers_are_grounded_in_evidence():
         assert check_grounding(result["answer"], result["evidence"]), query
 
 
+def _scorer_name(minute: int) -> str:
+    """Read the scripted scorer's display name from the sample (not hardcoded)."""
+    from app.simulator.generator import load_match
+
+    match = load_match(SAMPLE)
+    names = match.meta.display_names()
+    goal = next(e for e in match.events if e.type.value == "goal" and e.minute == minute)
+    assert goal.player_id is not None
+    return names.get(goal.player_id, goal.player_id)
+
+
 def test_goal_answer_names_scorer_and_score():
     result = answer_question("Why did Eastvale score at 57'?", mode="analyst")
-    assert "Felix Okafor" in result["answer"] and "1-1" in result["answer"]
+    assert _scorer_name(57) in result["answer"] and "1-1" in result["answer"]
 
 
 def test_ukrainian_beginner_answer():
@@ -70,7 +85,7 @@ def test_ukrainian_beginner_answer():
 
 def test_exploding_llm_still_returns_grounded_answer():
     result = answer_question("Why did Eastvale score at 57'?", llm=ExplodingLLM())
-    assert "Felix Okafor" in result["answer"]
+    assert _scorer_name(57) in result["answer"]
     assert check_grounding(result["answer"], result["evidence"])
 
 

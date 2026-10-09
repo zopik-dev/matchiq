@@ -36,9 +36,13 @@ def test_early_home_dominance_in_5min_window():
 
 def test_away_on_top_after_equaliser_spell():
     match, engine, home_id, away_id = _engine()
+    # Feed only up to 62:00: the trailing state must reflect the match
+    # as played so far (the deque only retains the last 10 minutes).
     for event in match.events:
         engine.update(event)
-    stats = engine.state.window_stats(5, now=62 * 60)
+        if event.timestamp_s >= 62 * 60:
+            break
+    stats = engine.state.window_stats(5)
     assert stats.momentum[away_id] > 0
     assert stats.teams[away_id].xg_sum > stats.teams[home_id].xg_sum
 

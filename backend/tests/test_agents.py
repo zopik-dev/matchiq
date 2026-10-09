@@ -73,7 +73,8 @@ def test_explain_agent_grounded_with_mock():
     context = Ctx().handle(goal, stats, {"NGU": 1, "EVR": 0}, None, "m1")
     message, degraded = ExplainAgent(MockLLM()).handle(goal, context, names, "m2")
     assert not degraded
-    assert "Ellis Thornton" in message.payload["text"]
+    scorer = goal.evidence.get("scorer", "")
+    assert names.get(scorer, scorer) in message.payload["text"]
     evidence = ExplainAgent(MockLLM()).llm_evidence(goal, context)
     assert check_grounding(message.payload["text"], evidence)
 

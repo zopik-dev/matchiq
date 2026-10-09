@@ -20,7 +20,9 @@ PRESSURE_COOLDOWN_MIN = 5
 MOMENTUM_STRONG = 25.0
 
 #: |momentum| below this margin counts as "no leader" for lead flips.
-MOMENTUM_LEAD_MARGIN = 10.0
+#: Set at the strong threshold so single-event wobbles around zero cannot
+#: fire swings — only decisive takeovers flip the lead.
+MOMENTUM_LEAD_MARGIN = 25.0
 SWING_COOLDOWN_MIN = 3
 
 #: Minimum events in the trailing 5-minute window before swings may fire

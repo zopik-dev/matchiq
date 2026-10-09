@@ -85,6 +85,7 @@ export default function Pitch({
   const shown = events.slice(-25);
   const last = shown[shown.length - 1];
   const clock = last ? last.timestamp_s : 0;
+  // Stream coordinates drive formation shift; the rendered ball snaps to tokens.
   const ball = last ? { x: toX(last.x), y: toY(last.y) } : { x: 52.5, y: 34 };
 
   const lastPass = [...shown].reverse().find((e) => e.type === "pass");
@@ -118,6 +119,23 @@ export default function Pitch({
   }, [base, ball.x, ball.y, clock, lastPass]);
 
   const carrierId = last?.player_id ?? null;
+
+  // Ball snaps to the carrier's token (stays with them until the next
+  // pass/shot); shots render at the mouth, travelling from the shooter.
+  const carrierSpot = carrierId ? tokens.get(carrierId) : undefined;
+  const isShot = last?.type === "shot" || last?.type === "goal";
+  const ballRender =
+    isShot || !carrierSpot ? ball : { x: carrierSpot.x, y: carrierSpot.y };
+
+  // Pass vector runs token-to-token so the glide matches the athletes.
+  const passVec = useMemo(() => {
+    if (!passFrom || !passFrom.player_id) return null;
+    const from = tokens.get(passFrom.player_id);
+    const recvId = passFrom.target_player_id;
+    const to = recvId ? tokens.get(recvId) : undefined;
+    if (!from || !to) return null;
+    return { x1: from.x, y1: from.y, x2: to.x, y2: to.y };
+  }, [tokens, passFrom]);
 
   const actors = useMemo(() => {
     if (!featured) return [];
@@ -270,9 +288,9 @@ export default function Pitch({
           />
         ))}
 
-        {passFrom && last && (
+        {passVec ? (
           <path
-            d={`M${toX(passFrom.x)} ${toY(passFrom.y)} L${toX(last.x)} ${toY(last.y)}`}
+            d={`M${passVec.x1} ${passVec.y1} L${passVec.x2} ${passVec.y2}`}
             stroke="#fff"
             strokeWidth="0.45"
             strokeDasharray="1.6 1.4"
@@ -280,6 +298,19 @@ export default function Pitch({
             fill="none"
             markerEnd="url(#arr)"
           />
+        ) : (
+          passFrom &&
+          last && (
+            <path
+              d={`M${toX(passFrom.x)} ${toY(passFrom.y)} L${toX(last.x)} ${toY(last.y)}`}
+              stroke="#fff"
+              strokeWidth="0.45"
+              strokeDasharray="1.6 1.4"
+              className="dash-anim"
+              fill="none"
+              markerEnd="url(#arr)"
+            />
+          )
         )}
 
         {shot && (
@@ -346,7 +377,7 @@ export default function Pitch({
         })}
 
         {last && (
-          <g transform={`translate(${ball.x.toFixed(2)} ${ball.y.toFixed(2)})`} style={{ transition: EASE }}>
+          <g transform={`translate(${ballRender.x.toFixed(2)} ${ballRender.y.toFixed(2)})`} style={{ transition: EASE }}>
             <circle r="2" fill="#3ee6a0" className="pulse-ring" opacity="0.6" />
             <circle r="1.1" fill="#fff" />
           </g>

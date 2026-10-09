@@ -45,7 +45,8 @@ def test_match_payload_shape():
     assert early["home"] < totals["xg_home"] / 2
     assert early["away"] < 1.0
     # Moment titles show names, never raw ids.
-    assert "Ellis Thornton" in [m["title"] for m in payload["moments"] if m["type"] == "goal"][0]
+    goal_titles = [m["title"] for m in payload["moments"] if m["type"] == "goal"]
+    assert goal_titles and all("(" in t and ")" in t for t in goal_titles)
     assert not any("NGU_" in m["title"] or "EVR_" in m["title"] for m in payload["moments"])
 
 

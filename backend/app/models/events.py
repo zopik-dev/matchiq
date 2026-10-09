@@ -36,6 +36,7 @@ class EventType(StrEnum):
     KICKOFF = "kickoff"
     HALF_TIME = "half_time"
     FULL_TIME = "full_time"
+    GOAL_KICK = "goal_kick"
 
 
 class EventOutcome(StrEnum):
