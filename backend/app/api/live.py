@@ -123,9 +123,16 @@ class LiveSession:
 
     async def stream(self, profile: PersonalizeProfile):
         """Yield (kind, payload) tuples paced by the playback speed."""
-        prepared = self.prepare(profile)
         self._generation += 1
         generation = self._generation
+        # Instant feedback: the UI connects immediately instead of waiting
+        # for the (possibly seconds-long) pipeline preparation.
+        yield ("state", self.state())
+        # Heavy pipeline work runs off the event loop so /api/match and
+        # replay controls stay responsive while a new viewer connects.
+        prepared = await asyncio.to_thread(self.prepare, profile)
+        if generation != self._generation:
+            return
         ordered = sorted(
             ((d["moment_id"], d["timestamp_s"]) for d in prepared.result.details),
             key=lambda item: item[1],
@@ -147,6 +154,7 @@ class LiveSession:
                     if hops:
                         yield ("trace", {"moment_id": mid, "hops": hops})
         last_minute = -1
+        last_state_minute = -1.0
         while local_index < len(self.events):
             if generation != self._generation:
                 return
@@ -157,20 +165,38 @@ class LiveSession:
                 cutoff = self.timestamps[local_index - 1] if local_index > 0 else -1.0
                 emitted = {mid for mid, ts in ordered if ts <= cutoff}
                 last_minute = -1
+                last_state_minute = -1.0
                 yield ("state", self.state())
                 continue
             if not self.playing:
-                await self._wake.wait()
+                # Poll instead of a bare _wake.wait() so a seek-while-paused
+                # resyncs promptly instead of hanging until play.
+                await asyncio.sleep(0.05)
                 continue
             event = self.events[local_index]
             if self.speed > 0:
-                await asyncio.sleep(max(0.0, (event.timestamp_s - previous_ts) / self.speed))
+                delay = max(0.0, (event.timestamp_s - previous_ts) / self.speed)
+                # Interruptible sleep: seek / pause / new stream cancels
+                # the wait within ~50ms instead of sleeping through a gap.
+                waited = 0.0
+                interrupted = False
+                while waited < delay:
+                    await asyncio.sleep(min(0.05, delay - waited))
+                    if generation != self._generation:
+                        return
+                    if local_index != self.index or not self.playing:
+                        interrupted = True
+                        break
+                    waited += 0.05
+                if interrupted:
+                    continue
             if generation != self._generation or local_index != self.index:
                 continue
             previous_ts = event.timestamp_s
             local_index += 1
             self.index = local_index
-            yield ("event", _slim_event(event))
+            slim = _slim_event(event)
+            yield ("event", slim)
             minute = event.minute
             if minute != last_minute:
                 last_minute = minute
@@ -183,6 +209,12 @@ class LiveSession:
                             "away": round(-prepared.momentum[minute], 2),
                         },
                     )
+            # Keep the clock and score live: the header only listens to
+            # "state", so without this the minute/score freeze until seek.
+            is_goal = event.type == EventType.GOAL
+            if is_goal or event.timestamp_s - last_state_minute * 60 >= 5.0:
+                last_state_minute = event.timestamp_s / 60
+                yield ("state", self.state())
             for mid, mts in ordered:
                 if mts <= event.timestamp_s and mid not in emitted:
                     emitted.add(mid)

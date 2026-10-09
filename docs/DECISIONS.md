@@ -2,6 +2,12 @@
 
 Log of non-obvious decisions (newest first).
 
+- (Speech) Hybrid commentary audio: Azure Speech TTS via stdlib `urllib` REST
+  (no SDK, honoring the small-deps rule) with an MD5 in-memory MP3 cache;
+  missing `MATCHIQ_AZURE_SPEECH_KEY` returns `{"status": "fallback_client"}` and
+  the browser speaks the same text via Web Speech API (`en-GB`/`uk-UA`,
+  rate 1.1). Excited SSML prosody only for `goal`/`big_chance`; autoplay skips
+  the SSE catch-up burst (2 s guard) so reconnects don't replay past goals.
 - (Phase 5) Cosmos DB over PostgreSQL: the SQL API is reachable with stdlib
   REST + HMAC (zero new dependencies, honoring the small-deps rule); Postgres
   stays a documented alternative behind the same interface.

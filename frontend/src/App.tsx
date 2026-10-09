@@ -2,8 +2,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Flag } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { controls, fetchMatch, streamUrl } from "./api";
-import Breakdown from "./components/Breakdown";
-import Copilot from "./components/Copilot";
+import { useCommentaryAudio } from "./hooks/useCommentaryAudio";
+import Breakdown from "./components/Breakdown";import Copilot from "./components/Copilot";
 import Feed from "./components/Feed";
 import Glass from "./components/Glass";
 import Header, { BrandMark } from "./components/Header";
@@ -45,10 +45,25 @@ export default function App() {
   const [xrayIndex, setXrayIndex] = useState(0);
   const profileRef = useRef(profile);
   profileRef.current = profile;
+  const { isMuted, isSpeaking, speak, stop, toggleMute } = useCommentaryAudio();
+  const audioOn = !isMuted;
+  // Refs so the SSE effect (subscribed once per streamKey) always sees
+  // fresh audio state without resubscribing on every toggle.
+  const speakRef = useRef(speak);
+  speakRef.current = speak;
+  const audioOnRef = useRef(audioOn);
+  audioOnRef.current = audioOn;
+  const langRef = useRef(profile.lang);
+  langRef.current = profile.lang;
+  const teamsRef = useRef<{ homeId: string | undefined; awayId: string | undefined }>({
+    homeId: undefined,
+    awayId: undefined,
+  });
 
   const t = STR[profile.lang];
   const home = match?.meta.teams[0];
   const away = match?.meta.teams[1];
+  teamsRef.current = { homeId: home?.id, awayId: away?.id };
   const names = useMemo(
     () => Object.fromEntries((match?.meta.teams ?? []).map((tm) => [tm.id, tm.name])),
     [match],
@@ -64,6 +79,7 @@ export default function App() {
     setFeed([]);
     setHops([]);
     const source = new EventSource(streamUrl(profileRef.current));
+    const connectedAt = Date.now();
     const on = (kind: string, fn: (data: unknown) => void) => {
       source.addEventListener(kind, (e) => {
         fn(JSON.parse((e as MessageEvent).data));
@@ -73,16 +89,46 @@ export default function App() {
       setReplay(d as ReplayState);
       setConnected(true);
     });
-    on("event", (d) =>
-      setEvents((prev) => [...prev.slice(-119), d as PitchEvent]),
-    );
-    on("moment", (d) =>
+    on("event", (d) => {
+      const evt = d as PitchEvent;
+      setEvents((prev) => [...prev.slice(-119), evt]);
+      // Optimistic clock + score: the header must move on every event,
+      // even if the next backend "state" is still in flight.
+      setReplay((prev) => {
+        if (!prev) return prev;
+        const minute = evt.timestamp_s / 60;
+        if (evt.type !== "goal") {
+          return minute > prev.minute ? { ...prev, minute } : prev;
+        }
+        const { homeId, awayId } = teamsRef.current;
+        const score = { ...prev.score };
+        if (evt.team_id && evt.team_id === homeId) score.home += 1;
+        else if (evt.team_id && evt.team_id === awayId) score.away += 1;
+        else if (!evt.team_id) score.home += 0;
+        return { ...prev, minute, score };
+      });
+    });
+    on("moment", (d) => {
+      const detail = d as MomentDetail;
       setFeed((prev) => {
-        const detail = d as MomentDetail;
         if (prev.some((m) => m.moment_id === detail.moment_id)) return prev;
         return [...prev, detail];
-      }),
-    );
+      });
+      // Auto-play: announce live goals when broadcast audio is ON.
+      // The initial catch-up burst after (re)connect is skipped so a
+      // reconnect mid-match doesn't replay every past goal at once.
+      if (
+        detail.moment_type === "goal" &&
+        audioOnRef.current &&
+        Date.now() - connectedAt > 2000
+      ) {
+        void speakRef.current(
+          detail.line ?? detail.story,
+          langRef.current,
+          detail.moment_type,
+        );
+      }
+    });
     on("trace", (d) =>
       setHops((prev) => [...prev, ...((d as { hops: Hop[] }).hops ?? [])]),
     );
@@ -103,10 +149,21 @@ export default function App() {
 
   const doSeek = useCallback(
     async (minute: number) => {
-      await controls.seek(minute);
+      stop();
+      try {
+        // Apply the new playhead instantly so the clock/score don't lag
+        // behind the SSE reconnect.
+        const next = await controls.seek(minute);
+        setReplay(next);
+        setEvents([]);
+        setFeed([]);
+        setHops([]);
+      } catch {
+        /* seek failure keeps the old playhead */
+      }
       reconnect();
     },
-    [reconnect],
+    [reconnect, stop],
   );
 
   const openXray = useCallback(async (momentId: string) => {
@@ -203,6 +260,21 @@ export default function App() {
         : null,
     [xray, xrayIndex, stepLabel],
   );
+
+  // Auto-play: announce X-Ray steps aloud when broadcast audio is ON.
+  const announcedXray = useRef<string | null>(null);
+  useEffect(() => {
+    if (!xray) {
+      announcedXray.current = null;
+      return;
+    }
+    if (!audioOn) return;
+    const key = `${xray.moment_id}:${xrayIndex}`;
+    if (announcedXray.current === key) return;
+    announcedXray.current = key;
+    const label = stepLabel(xray.steps[xrayIndex]?.step_label ?? "");
+    void speak(`${label}. ${xray.title}`, profile.lang, "goal");
+  }, [audioOn, xray, xrayIndex, speak, stepLabel, profile.lang]);
   // Time-sliced metrics: only what happened up to the current minute.
   // (All hooks stay above the early return — Rules of Hooks.)
   const xgSoFar = useMemo(() => {
@@ -261,6 +333,9 @@ export default function App() {
         onSeek={(m) => void doSeek(m)}
         onReplay={setReplay}
         connected={connected}
+        audioOn={audioOn}
+        audioSpeaking={isSpeaking}
+        onToggleAudio={toggleMute}
         t={t}
       />
 
@@ -427,7 +502,22 @@ export default function App() {
                 )}
               </AnimatePresence>
 
-              <Narrative featured={featured} mode={profile.mode} empty={t.noMoments} />
+              <Narrative
+                featured={featured}
+                mode={profile.mode}
+                empty={t.noMoments}
+                speaking={isSpeaking}
+                onListen={
+                  featured
+                    ? () =>
+                        void speak(
+                          featured.line ?? featured.story,
+                          profile.lang,
+                          featured.moment_type,
+                        )
+                    : undefined
+                }
+              />
 
               <Metrics
                 title={t.metricsTitle}
@@ -531,6 +621,8 @@ export default function App() {
               placeholder={t.copilotPlaceholder}
               thinking={t.copilotThinking}
               errorText={t.copilotError}
+              speaking={isSpeaking}
+              onSpeak={(text) => void speak(text, profile.lang, "tactical")}
             />
           )}
             </motion.div>

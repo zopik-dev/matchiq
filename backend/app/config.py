@@ -41,6 +41,12 @@ class Settings:
     )
     # Optional PostgreSQL URL (alternative behind the same interface).
     database_url: str = field(default_factory=lambda: _get("MATCHIQ_DATABASE_URL"))
+    # Azure AI Speech TTS for live broadcast commentary (see backend/app/speech/).
+    # Empty key disables Azure and the frontend falls back to Web Speech API.
+    azure_speech_key: str = field(default_factory=lambda: _get("MATCHIQ_AZURE_SPEECH_KEY"))
+    azure_speech_region: str = field(
+        default_factory=lambda: _get("MATCHIQ_AZURE_SPEECH_REGION", "westeurope")
+    )
 
     @property
     def azure_configured(self) -> bool:

@@ -33,6 +33,9 @@ export default function Header({
   onReplay,
   connected,
   t,
+  audioOn,
+  audioSpeaking,
+  onToggleAudio,
 }: {
   home: Team;
   away: Team;
@@ -42,6 +45,9 @@ export default function Header({
   onSeek: (minute: number) => void;
   onReplay: (state: ReplayState) => void;
   connected: boolean;
+  audioOn: boolean;
+  audioSpeaking: boolean;
+  onToggleAudio: () => void;
   t: {
     play: string;
     pause: string;
@@ -147,6 +153,36 @@ export default function Header({
               <Volleyball size={13} /> {t.connecting}
             </span>
           )}
+          <button
+            onClick={onToggleAudio}
+            aria-pressed={audioOn}
+            title="Toggle live broadcast audio"
+            className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+              audioOn ? "bg-home text-ink shadow-lg" : "bg-black/30 text-white/60 hover:text-white"
+            }`}
+          >
+            <span className="relative flex items-center">
+              🎙️
+              {audioSpeaking && (
+                <span className="absolute -right-1 -top-1 flex size-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-home opacity-75" />
+                  <span className="relative inline-flex size-2 rounded-full bg-home" />
+                </span>
+              )}
+            </span>
+            Live Audio: {audioOn ? "ON" : "OFF"}
+            {audioSpeaking && (
+              <span className="flex items-end gap-[2px]" aria-hidden>
+                {[0, 1, 2].map((i) => (
+                  <i
+                    key={i}
+                    className="w-[3px] animate-pulse rounded-full bg-current"
+                    style={{ height: `${8 + (i % 3) * 4}px`, animationDelay: `${i * 150}ms` }}
+                  />
+                ))}
+              </span>
+            )}
+          </button>
         </div>
       </Glass>
     </header>

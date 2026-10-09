@@ -6,10 +6,14 @@ export default function Narrative({
   featured,
   mode,
   empty,
+  onListen,
+  speaking,
 }: {
   featured: MomentDetail | null;
   mode: string;
   empty: string;
+  onListen?: () => void;
+  speaking?: boolean;
 }) {
   return (
     <Glass className="overflow-hidden p-0">
@@ -26,6 +30,30 @@ export default function Narrative({
         <span className="ml-auto rounded-full border border-home/30 bg-home/10 px-2.5 py-0.5 text-[11px] font-semibold capitalize text-home">
           {mode}
         </span>
+        {featured && onListen && (
+          <button
+            onClick={onListen}
+            title="Listen to this moment"
+            aria-label="Listen to this moment"
+            className={`grid size-8 shrink-0 place-items-center rounded-full transition ${
+              speaking ? "bg-home text-ink" : "bg-white/10 text-white/70 hover:bg-white/20 hover:text-white"
+            }`}
+          >
+            {speaking ? (
+              <span className="flex items-end gap-[2px]" aria-hidden>
+                {[0, 1, 2].map((i) => (
+                  <i
+                    key={i}
+                    className="w-[2.5px] animate-pulse rounded-full bg-current"
+                    style={{ height: `${7 + (i % 3) * 3}px`, animationDelay: `${i * 150}ms` }}
+                  />
+                ))}
+              </span>
+            ) : (
+              "🔊"
+            )}
+          </button>
+        )}
       </div>
       <AnimatePresence mode="wait">
         {featured ? (

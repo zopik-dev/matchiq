@@ -58,6 +58,8 @@ export default function Copilot({
   placeholder,
   thinking,
   errorText,
+  onSpeak,
+  speaking,
 }: {
   profile: Profile;
   homeName: string;
@@ -66,6 +68,8 @@ export default function Copilot({
   placeholder: string;
   thinking: string;
   errorText: string;
+  onSpeak?: (text: string) => void;
+  speaking?: boolean;
 }) {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
@@ -159,6 +163,20 @@ export default function Copilot({
             ))}
           </div>
           <p className="text-sm leading-snug text-white/85">{response.answer}</p>
+          {onSpeak && (
+            <button
+              onClick={() => onSpeak(response.answer)}
+              title="Read this answer aloud"
+              aria-label="Read this answer aloud"
+              className={`mt-2 grid size-8 place-items-center rounded-full transition ${
+                speaking
+                  ? "bg-home text-ink"
+                  : "bg-white/10 text-white/70 hover:bg-white/20 hover:text-white"
+              }`}
+            >
+              🔊
+            </button>
+          )}
           {response.relevant_events.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1">
               {response.relevant_events.map((e, i) => (

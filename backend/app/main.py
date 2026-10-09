@@ -9,6 +9,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import router
+from app.api.speech import router as speech_router
 from app.config import get_settings
 
 settings = get_settings()
@@ -23,6 +24,7 @@ app.add_middleware(
 )
 
 app.include_router(router)
+app.include_router(speech_router)
 
 
 @app.get("/health")
