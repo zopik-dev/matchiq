@@ -32,6 +32,7 @@ export default function PressureTimeline({
   homeName,
   awayName,
   onSeek,
+  onGoalPin,
   title,
   hint,
   resolvePlayer,
@@ -43,6 +44,7 @@ export default function PressureTimeline({
   homeName: string;
   awayName: string;
   onSeek: (minute: number) => void;
+  onGoalPin?: (minute: number) => void;
   title: string;
   hint: string;
   resolvePlayer: (id: string | null) => { name: string } | null;
@@ -143,8 +145,7 @@ export default function PressureTimeline({
             <g
               key={g.id}
               className="cursor-pointer"
-              onClick={() => onSeek(g.minute)}
-              filter="url(#pinGlow)"
+              onClick={() => (onGoalPin ?? onSeek)(g.minute)}
             >
               <title>{g.title}</title>
               <line x1={x} x2={x} y1="16" y2={H - 14} stroke={c} strokeOpacity="0.5" strokeDasharray="2 3" />
@@ -189,11 +190,11 @@ export default function PressureTimeline({
             const surname =
               resolvePlayer(typeof raw === "string" ? raw : null)?.name.split(" ").slice(-1)[0] ?? "";
             return (
-              <button
-                key={g.id}
-                onClick={() => onSeek(g.minute)}
-                className="tabular-nums hover:text-white"
-              >
+            <button
+              key={g.id}
+              onClick={() => (onGoalPin ?? onSeek)(g.minute)}
+              className="tabular-nums hover:text-white"
+            >
                 <b className="text-white">{g.minute}&prime;</b> {surname}
               </button>
             );

@@ -202,3 +202,45 @@ def copilot_ask(body: AskBody) -> dict:
     llm = azure if azure.available() else MockLLM()
     query = body.query if body.minute is None else f"{body.query} ({body.minute}')"
     return answer_question(query, mode=body.mode, language=body.lang, llm=llm)
+
+
+def _check_mode_lang(mode: str, lang: str) -> None:
+    if mode not in ("analyst", "fan", "beginner"):
+        raise HTTPException(status_code=422, detail="mode must be analyst|fan|beginner")
+    if lang not in ("en", "uk"):
+        raise HTTPException(status_code=422, detail="lang must be en|uk")
+
+
+@router.get("/players/{player_id}/telemetry")
+def player_telemetry(
+    player_id: str,
+    mode: str = Query(default="fan"),
+    lang: str = Query(default="en"),
+) -> dict:
+    """Scouting dossier for one player, computed from the event stream."""
+    from app.engine.telemetry import player_telemetry as build_dossier
+
+    _check_mode_lang(mode, lang)
+    try:
+        return build_dossier(get_session().match, player_id, lang=lang, mode=mode)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.get("/moments/{moment_id}/xray")
+def moment_xray(moment_id: str) -> dict:
+    """Step-by-step breakdown of a goal: lead-up passes plus the finish."""
+    from app.engine.telemetry import goal_xray
+
+    session = get_session()
+    match = session.match
+    names = match.meta.display_names()
+    engine = AnalyticsEngine(match.meta.teams[0].id, match.meta.teams[1].id, names)
+    for event in session.events:
+        engine.update(event)
+    try:
+        return goal_xray(match, engine.moments, moment_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc

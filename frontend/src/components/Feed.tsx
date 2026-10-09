@@ -23,7 +23,13 @@ function badges(evidence: Record<string, unknown>): string[] {
   return out;
 }
 
-export default function Feed({ items }: { items: MomentDetail[] }) {
+export default function Feed({
+  items,
+  onGoalClick,
+}: {
+  items: MomentDetail[];
+  onGoalClick?: (momentId: string) => void;
+}) {
   const ordered = useMemo(
     () => [...items].sort((a, b) => b.timestamp_s - a.timestamp_s),
     [items],
@@ -32,13 +38,18 @@ export default function Feed({ items }: { items: MomentDetail[] }) {
     <div className="flex flex-col gap-2.5">
       {ordered.map((item) => {
         const Icon = ICONS[item.moment_type];
+        const clickable = item.moment_type === "goal" && onGoalClick;
         return (
           <motion.article
             key={item.moment_id}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="rounded-2xl border border-white/[0.07] bg-black/20 p-3.5"
+            onClick={clickable ? () => onGoalClick(item.moment_id) : undefined}
+            title={clickable ? `${item.moment_type} · ${item.minute}′` : undefined}
+            className={`rounded-2xl border border-white/[0.07] bg-black/20 p-3.5 ${
+              clickable ? "cursor-pointer transition hover:border-home/40" : ""
+            }`}
           >
             <div className="mb-1.5 flex items-center gap-2">
               <Icon size={14} className="text-home" />

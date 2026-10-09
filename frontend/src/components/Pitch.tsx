@@ -1,5 +1,6 @@
 import gsap from "gsap";
 import { MotionPathPlugin } from "gsap/MotionPathPlugin";
+import { motion } from "framer-motion";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { MomentDetail, PitchEvent, Player, Team } from "../types";
 
@@ -62,6 +63,13 @@ function shiftDot(d: BaseDot, ballX: number, ballY: number, clock: number): { x:
   };
 }
 
+export interface XrayOverlay {
+  points: { x: number; y: number; label: string }[];
+  index: number;
+  xg: number | null;
+  speed: number | null;
+}
+
 export default function Pitch({
   home,
   away,
@@ -69,6 +77,10 @@ export default function Pitch({
   featured,
   lookup,
   attackLabel,
+  focusedId,
+  onPlayerClick,
+  onClearFocus,
+  xray,
 }: {
   home: Team;
   away: Team;
@@ -76,6 +88,10 @@ export default function Pitch({
   featured: MomentDetail | null;
   lookup: (id: string | null) => { name: string; number: number } | null;
   attackLabel: string;
+  focusedId: string | null;
+  onPlayerClick: (id: string) => void;
+  onClearFocus: () => void;
+  xray: XrayOverlay | null;
 }) {
   const [showLines, setShowLines] = useState(true);
 
@@ -231,6 +247,16 @@ export default function Pitch({
     return out;
   }, [tokens]);
 
+  // X-Ray overlay points in display coords, sliced to the active step.
+  const xrayPts = useMemo(() => {
+    if (!xray) return null;
+    const pts = xray.points.map((p) => ({ x: toX(p.x), y: toY(p.y), label: p.label }));
+    const shownPts = pts.slice(0, xray.index + 1);
+    if (shownPts.length === 0) return null;
+    const lastPt = shownPts[shownPts.length - 1];
+    return { pts: shownPts, lastPt, done: xray.index >= pts.length - 1 };
+  }, [xray]);
+
   return (
     <div className="relative">
       <button
@@ -241,7 +267,15 @@ export default function Pitch({
       >
         Tactical Lines
       </button>
-      <svg viewBox="0 0 105 68" className="block w-full rounded-2xl" role="img" aria-label="Live pitch">
+      <svg
+        viewBox="0 0 105 68"
+        className="block w-full rounded-2xl"
+        role="img"
+        aria-label="Live pitch"
+        onClick={(e) => {
+          if (!(e.target as SVGElement).closest?.("[data-token]")) onClearFocus();
+        }}
+      >
         <defs>
           <linearGradient id="turf" x1="0" x2="1">
             <stop offset="0" stopColor="#0a3b2b" />
@@ -310,11 +344,17 @@ export default function Pitch({
         {[...tokens.values()].map(({ d }) => (
           <g
             key={d.p.id}
+            data-token={d.p.id}
             ref={(el) => {
               tokenRefs.current.set(d.p.id, el);
             }}
             transform={`translate(${d.x.toFixed(2)} ${d.y.toFixed(2)})`}
             opacity={d.side === "home" ? 0.92 : 0.85}
+            className="cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              onPlayerClick(d.p.id);
+            }}
           >
             <circle
               r="1.6"
@@ -325,8 +365,20 @@ export default function Pitch({
             <text y="0.9" textAnchor="middle" fontSize="2.2" fontWeight="700" fill="#070A11">
               {d.p.number}
             </text>
-            {d.p.id === carrierId && (
-              <circle r="2.5" fill="none" stroke="#fff" strokeWidth="0.4" opacity="0.9" filter="url(#softGlow)" className="pulse-ring" />
+            {d.p.id === focusedId && (
+              <motion.circle
+                r="2.6"
+                fill="none"
+                stroke="#fff"
+                strokeWidth="0.55"
+                initial={{ opacity: 0.9, scale: 0.7 }}
+                animate={{ opacity: [0.9, 0.35, 0.9], scale: [0.75, 1.25, 0.75] }}
+                transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+                style={{ transformBox: "fill-box", transformOrigin: "center" }}
+              />
+            )}
+            {d.p.id === carrierId && d.p.id !== focusedId && (
+              <circle r="2.5" fill="none" stroke="#fff" strokeWidth="0.4" opacity="0.9" className="pulse-ring" />
             )}
           </g>
         ))}
@@ -411,6 +463,77 @@ export default function Pitch({
               strokeWidth="0.5"
               className="pulse-ring"
             />
+          </g>
+        )}
+
+        {xrayPts && xray && (
+          <g>
+            <polyline
+              points={xrayPts.pts.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ")}
+              fill="none"
+              stroke={HOME_C}
+              strokeWidth="0.55"
+              strokeDasharray="1.8 1.2"
+              className="dash-anim"
+              opacity="0.95"
+            />
+            {xrayPts.pts.map((p, i) => (
+              <circle
+                key={i}
+                cx={p.x}
+                cy={p.y}
+                r={i === xrayPts.pts.length - 1 ? 1.5 : 0.9}
+                fill={i === xrayPts.pts.length - 1 ? "#fff" : HOME_C}
+                stroke="#070A11"
+                strokeWidth="0.3"
+              />
+            ))}
+            <g>
+              <rect
+                x={Math.min(78, Math.max(2, xrayPts.lastPt.x - 11))}
+                y={Math.max(1, xrayPts.lastPt.y - 12)}
+                width="22"
+                height={xrayPts.done ? 10 : 6}
+                rx="2"
+                fill="#070A11"
+                fillOpacity="0.82"
+                stroke={HOME_C}
+                strokeOpacity="0.5"
+                strokeWidth="0.25"
+              />
+              {xrayPts.done ? (
+                <>
+                  <text
+                    x={Math.min(78, Math.max(2, xrayPts.lastPt.x - 11)) + 2}
+                    y={Math.max(1, xrayPts.lastPt.y - 12) + 3.6}
+                    fontSize="2.4"
+                    fontWeight="700"
+                    fill="#fff"
+                  >
+                    xG {(xray.xg ?? 0).toFixed(2)}
+                    {xray.speed !== null ? ` · ${xray.speed.toFixed(0)} km/h` : ""}
+                  </text>
+                  <text
+                    x={Math.min(78, Math.max(2, xrayPts.lastPt.x - 11)) + 2}
+                    y={Math.max(1, xrayPts.lastPt.y - 12) + 7}
+                    fontSize="2"
+                    fill="#9aa6c0"
+                  >
+                    {xrayPts.pts[xrayPts.pts.length - 1]?.label ?? ""}
+                  </text>
+                </>
+              ) : (
+                <text
+                  x={Math.min(78, Math.max(2, xrayPts.lastPt.x - 11)) + 2}
+                  y={Math.max(1, xrayPts.lastPt.y - 12) + 4}
+                  fontSize="2.2"
+                  fontWeight="600"
+                  fill="#fff"
+                >
+                  {xrayPts.pts[xrayPts.pts.length - 1]?.label ?? ""}
+                </text>
+              )}
+            </g>
           </g>
         )}
 

@@ -120,6 +120,29 @@ export interface Hop {
   error: string | null;
 }
 
+export interface XrayStep {
+  event_id: string;
+  minute: number;
+  timestamp_s: number;
+  type: string;
+  team_id: string | null;
+  player_id: string | null;
+  x: number;
+  y: number;
+  step_label: string;
+}
+
+export interface XrayData {
+  moment_id: string;
+  minute: number;
+  team_id: string | null;
+  title: string;
+  xg: number | null;
+  shot_speed_kmh: number | null;
+  score: string | null;
+  steps: XrayStep[];
+}
+
 export interface Profile {
   mode: "analyst" | "fan" | "beginner";
   lang: "en" | "uk";

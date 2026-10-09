@@ -10,6 +10,7 @@ import Header, { BrandMark } from "./components/Header";
 import Metrics from "./components/Metrics";
 import Narrative from "./components/Narrative";
 import Pitch from "./components/Pitch";
+import PlayerDossier from "./components/PlayerDossier";
 import PressureTimeline from "./components/PressureTimeline";
 import TracePanel from "./components/TracePanel";
 import { STR } from "./strings";
@@ -20,7 +21,9 @@ import type {
   PitchEvent,
   Profile,
   ReplayState,
+  XrayData,
 } from "./types";
+import { API_BASE } from "./types";
 
 export default function App() {
   const [match, setMatch] = useState<MatchPayload | null>(null);
@@ -36,7 +39,10 @@ export default function App() {
   const [events, setEvents] = useState<PitchEvent[]>([]);
   const [feed, setFeed] = useState<MomentDetail[]>([]);
   const [hops, setHops] = useState<Hop[]>([]);
-  const [sideTab, setSideTab] = useState<"insight" | "copilot">("insight");
+  const [sideTab, setSideTab] = useState<"insight" | "player" | "copilot">("insight");
+  const [focusPlayer, setFocusPlayer] = useState<string | null>(null);
+  const [xray, setXray] = useState<XrayData | null>(null);
+  const [xrayIndex, setXrayIndex] = useState(0);
   const profileRef = useRef(profile);
   profileRef.current = profile;
 
@@ -103,6 +109,52 @@ export default function App() {
     [reconnect],
   );
 
+  const openXray = useCallback(async (momentId: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/moments/${momentId}/xray`);
+      if (!res.ok) return;
+      const data = (await res.json()) as XrayData;
+      setXray(data);
+      setXrayIndex(data.steps.length - 1);
+      setSideTab("insight");
+    } catch {
+      /* x-ray stays closed on failure */
+    }
+  }, []);
+
+  const closeXray = useCallback(() => setXray(null), []);
+
+  const goalIdAt = useCallback(
+    (minute: number) =>
+      match?.moments.find((m) => m.type === "goal" && m.minute === minute)?.id ?? null,
+    [match],
+  );
+
+  const handleGoalPin = useCallback(
+    (minute: number) => {
+      void doSeek(minute);
+      const mid = goalIdAt(minute);
+      if (mid) void openXray(mid);
+    },
+    [doSeek, goalIdAt, openXray],
+  );
+
+  const handleTokenClick = useCallback(
+    (id: string) => {
+      setFocusPlayer(id);
+      setProfile((p) => ({ ...p, focus: id }));
+      setSideTab("player");
+      reconnect();
+    },
+    [reconnect],
+  );
+
+  const clearFocus = useCallback(() => {
+    setFocusPlayer(null);
+    setProfile((p) => ({ ...p, focus: null }));
+    reconnect();
+  }, [reconnect]);
+
   const lookup = useCallback(
     (id: string | null) => {
       if (!id || !match) return null;
@@ -125,6 +177,32 @@ export default function App() {
 
   const minute = replay?.minute ?? 0;
   const featured = feed.length > 0 ? feed[feed.length - 1] : null;
+
+  const stepLabel = useCallback(
+    (raw: string) => {
+      if (raw === "Key Pass") return t.stepKeyPass;
+      if (raw === "Finish") return t.stepFinish;
+      return t.stepBuildup;
+    },
+    [t],
+  );
+
+  const xrayOverlay = useMemo(
+    () =>
+      xray
+        ? {
+            points: xray.steps.map((s) => ({
+              x: s.x,
+              y: s.y,
+              label: stepLabel(s.step_label),
+            })),
+            index: Math.max(0, Math.min(xrayIndex, xray.steps.length - 1)),
+            xg: xray.xg,
+            speed: xray.shot_speed_kmh,
+          }
+        : null,
+    [xray, xrayIndex, stepLabel],
+  );
   // Time-sliced metrics: only what happened up to the current minute.
   // (All hooks stay above the early return — Rules of Hooks.)
   const xgSoFar = useMemo(() => {
@@ -164,13 +242,13 @@ export default function App() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-ink text-white">
+    <div className="flex h-screen flex-col overflow-hidden bg-ink text-white">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "radial-gradient(60% 50% at 30% 0%, rgba(62,230,160,0.10), transparent 70%), radial-gradient(50% 45% at 100% 20%, rgba(106,183,255,0.10), transparent 70%)",
+            "radial-gradient(60% 50% at 30% 0%, rgba(0,242,254,0.08), transparent 70%), radial-gradient(50% 45% at 100% 20%, rgba(245,158,11,0.07), transparent 70%)",
         }}
       />
 
@@ -186,9 +264,9 @@ export default function App() {
         t={t}
       />
 
-      <main className="relative mx-auto grid max-w-[1400px] gap-6 px-4 pb-14 pt-8 lg:grid-cols-[minmax(0,1fr)_400px] lg:px-8">
-        <section className="flex flex-col gap-6">
-          <Glass className="rounded-[28px] p-3 sm:p-4">
+      <main className="relative mx-auto grid w-full max-w-[1400px] min-h-0 flex-1 gap-6 px-4 pb-4 pt-6 lg:grid-cols-[minmax(0,1fr)_400px] lg:px-8">
+        <section className="flex min-h-0 flex-col gap-4 overflow-y-auto pr-0.5">
+          <Glass className="shrink-0 rounded-[28px] p-3 sm:p-4">
             <div className="flex items-center justify-between px-2 pb-3 pt-1">
               <div>
                 <div className="text-[11px] uppercase tracking-[0.18em] text-white/45">
@@ -200,16 +278,16 @@ export default function App() {
               </div>
               <div className="hidden items-center gap-4 text-xs text-white/60 sm:flex">
                 <span className="flex items-center gap-1.5">
-                  <i className="size-2.5 rounded-full bg-sky" />
+                  <i className="size-2.5 rounded-full bg-home" />
                   {home.name}
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <i className="size-2.5 rounded-full bg-amber" />
+                  <i className="size-2.5 rounded-full bg-away" />
                   {away.name}
                 </span>
               </div>
             </div>
-            <div className="overflow-hidden rounded-2xl shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_30px_80px_-30px_rgba(62,230,160,0.35)]">
+            <div className="overflow-hidden rounded-2xl shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_30px_80px_-30px_rgba(0,242,254,0.25)]">
               <Pitch
                 home={home}
                 away={away}
@@ -217,6 +295,10 @@ export default function App() {
                 featured={featured}
                 lookup={lookup}
                 attackLabel={home.name.split(" ")[0].toUpperCase()}
+                focusedId={focusPlayer}
+                onPlayerClick={handleTokenClick}
+                onClearFocus={clearFocus}
+                xray={xrayOverlay}
               />
             </div>
           </Glass>
@@ -230,6 +312,7 @@ export default function App() {
               homeName={home.name}
               awayName={away.name}
               onSeek={(m) => void doSeek(m)}
+              onGoalPin={(m) => void handleGoalPin(m)}
               title={t.pressure}
               hint={t.hoverScrub}
               resolvePlayer={(id) => (id ? lookup(id) : null)}
@@ -237,9 +320,9 @@ export default function App() {
           </Glass>
         </section>
 
-        <aside className="flex flex-col gap-4 lg:sticky lg:top-24 lg:self-start">
-          <div role="tablist" className="flex gap-1 self-start rounded-full bg-black/30 p-1">
-            {(["insight", "copilot"] as const).map((tab) => (
+        <aside className="flex min-h-0 flex-col gap-3 overflow-y-auto pr-0.5 lg:sticky lg:top-24 lg:self-start">
+          <div role="tablist" className="flex shrink-0 gap-1 self-start rounded-full bg-black/30 p-1">
+            {(["insight", "player", "copilot"] as const).map((tab) => (
               <button
                 key={tab}
                 role="tab"
@@ -257,7 +340,11 @@ export default function App() {
                   />
                 )}
                 <span className="relative z-10">
-                  {tab === "insight" ? `🎙️ ${t.tabInsight}` : `💡 ${t.copilotTitle}`}
+                  {tab === "insight"
+                    ? `🎙️ ${t.tabInsight}`
+                    : tab === "player"
+                      ? `👤 ${t.tabPlayer}`
+                      : `💡 ${t.copilotTitle}`}
                 </span>
               </button>
             ))}
@@ -270,10 +357,76 @@ export default function App() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className="flex flex-col gap-4"
+              className="flex min-h-0 flex-col gap-3"
             >
           {sideTab === "insight" ? (
             <>
+              <AnimatePresence>
+                {xray && (
+                  <motion.div
+                    key={`xray-${xray.moment_id}`}
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                  >
+                    <Glass className="p-4">
+                      <div className="mb-1 flex items-center justify-between">
+                        <span className="font-mono text-[11px] uppercase tracking-[0.16em] tabular-nums tracking-tight text-home">
+                          X-Ray · {xray.minute}&prime; · {xray.score ?? ""}
+                        </span>
+                        <button
+                          onClick={closeXray}
+                          className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] text-white/70 transition hover:bg-white/20 hover:text-white"
+                        >
+                          {t.xrayExit} ✕
+                        </button>
+                      </div>
+                      <p className="mb-3 text-sm font-semibold leading-snug">{xray.title}</p>
+                      <div className="flex items-center gap-2">
+                        <button
+                          aria-label="previous step"
+                          onClick={() => setXrayIndex((i) => Math.max(0, i - 1))}
+                          disabled={xrayIndex <= 0}
+                          className="grid size-8 shrink-0 place-items-center rounded-full bg-white/10 text-white transition hover:bg-white/20 disabled:opacity-30"
+                        >
+                          ◀
+                        </button>
+                        <div className="min-w-0 flex-1 text-center">
+                          <span className="font-mono text-xs tabular-nums tracking-tight text-white">
+                            {t.step} {xrayIndex + 1}/{xray.steps.length}
+                          </span>
+                          <span className="ml-2 text-xs text-white/60">
+                            {stepLabel(xray.steps[xrayIndex]?.step_label ?? "")}
+                          </span>
+                          <div className="mt-1.5 flex justify-center gap-1">
+                            {xray.steps.map((s, i) => (
+                              <button
+                                key={s.event_id}
+                                aria-label={`step ${i + 1}`}
+                                onClick={() => setXrayIndex(i)}
+                                className={`h-1.5 rounded-full transition-all ${
+                                  i === xrayIndex ? "w-6 bg-home" : "w-1.5 bg-white/25 hover:bg-white/50"
+                                }`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        <button
+                          aria-label="next step"
+                          onClick={() =>
+                            setXrayIndex((i) => Math.min(xray.steps.length - 1, i + 1))
+                          }
+                          disabled={xrayIndex >= xray.steps.length - 1}
+                          className="grid size-8 shrink-0 place-items-center rounded-full bg-white/10 text-white transition hover:bg-white/20 disabled:opacity-30"
+                        >
+                          ▶
+                        </button>
+                      </div>
+                    </Glass>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               <Narrative featured={featured} mode={profile.mode} empty={t.noMoments} />
 
               <Metrics
@@ -294,7 +447,7 @@ export default function App() {
 
               <Breakdown title={t.breakdown} featured={featured} events={events} lookup={lookup} />
 
-              <Glass className="rounded-[28px] px-4 py-3">
+              <Glass className="px-4 py-3">
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px]">
                   <label className="flex items-center gap-1.5 text-white/60">
                     <Flag size={12} /> {t.club}
@@ -315,7 +468,11 @@ export default function App() {
                     {t.focus}
                     <select
                       value={profile.focus ?? ""}
-                      onChange={(e) => changeProfile({ focus: e.target.value || null })}
+                      onChange={(e) => {
+                        const v = e.target.value || null;
+                        setFocusPlayer(v);
+                        changeProfile({ focus: v });
+                      }}
                       className="min-w-0 flex-1 rounded-full bg-black/30 px-2 py-1 text-white"
                     >
                       <option value="">{t.all}</option>
@@ -333,15 +490,38 @@ export default function App() {
                     {feed.length}/{match.moments.length}
                   </span>
                 </div>
-                <div className="max-h-[32vh] overflow-y-auto pr-0.5">
+                <div className="max-h-[28vh] overflow-y-auto pr-0.5">
                   {feed.length === 0 ? (
                     <p className="text-sm text-white/40">{t.noMoments}</p>
                   ) : (
-                    <Feed items={feed.slice(-6)} />
+                    <Feed
+                      items={feed.slice(-6)}
+                      onGoalClick={(mid) => {
+                        const m = feed.find((f) => f.moment_id === mid);
+                        if (m) void doSeek(m.minute);
+                        void openXray(mid);
+                      }}
+                    />
                   )}
                 </div>
               </Glass>
             </>
+          ) : sideTab === "player" ? (
+            <PlayerDossier
+              playerId={focusPlayer}
+              profile={profile}
+              empty={t.noFocus}
+              labels={{
+                passes: t.passesLabel,
+                accuracy: t.accuracyLabel,
+                topSpeed: t.topSpeedLabel,
+                distance: t.distanceLabel,
+                duels: t.duelsLabel,
+                goals: t.goalsLabel,
+                clear: t.clearFocus,
+              }}
+              onClear={clearFocus}
+            />
           ) : (
             <Copilot
               profile={profile}
@@ -358,7 +538,7 @@ export default function App() {
         </aside>
       </main>
 
-      <footer className="relative mx-auto max-w-[1400px] px-4 pb-10 lg:px-8">
+      <footer className="relative mx-auto w-full max-w-[1400px] shrink-0 px-4 pb-3 lg:px-8">
         <TracePanel hops={hops} title={t.trace} />
       </footer>
     </div>
