@@ -1,9 +1,12 @@
-import { useMemo, useState } from "react";
+import gsap from "gsap";
+import { MotionPathPlugin } from "gsap/MotionPathPlugin";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { MomentDetail, PitchEvent, Player, Team } from "../types";
 
-const HOME_C = "#6ab7ff";
-const AWAY_C = "#ffb84d";
-const EASE = "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)";
+gsap.registerPlugin(MotionPathPlugin);
+
+const HOME_C = "#00F2FE";
+const AWAY_C = "#F59E0B";
 
 const toX = (x: number) => (x / 100) * 105;
 const toY = (y: number) => (y / 100) * 68;
@@ -46,13 +49,11 @@ const PUSH: Record<BaseDot["line"], number> = { GK: 2, DF: 14, MF: 10, FW: 5 };
 const DROP: Record<BaseDot["line"], number> = { GK: 1, DF: 6, MF: 4, FW: 2 };
 
 function shiftDot(d: BaseDot, ballX: number, ballY: number, clock: number): { x: number; y: number } {
-  // +prog in opponent half pushes lines up; deep ball in own half drops the block.
   const prog = d.side === "home" ? (ballX - 52.5) / 52.5 : (52.5 - ballX) / 52.5;
   const dir = d.side === "home" ? 1 : -1;
   const push = prog >= 0 ? prog * PUSH[d.line] : prog * DROP[d.line];
   const defending = d.side === "home" ? ballX < 52.5 : ballX > 52.5;
   const compact = defending ? 0.14 : 0.07;
-  // Organic micro-drift so athletes look alive (±2 units ≈ ±2-3%).
   const dx = Math.sin(clock * 0.5 + d.phase) * 1.8;
   const dy = Math.cos(clock * 0.4 + d.phase * 1.7) * 1.4;
   return {
@@ -85,18 +86,15 @@ export default function Pitch({
   const shown = events.slice(-25);
   const last = shown[shown.length - 1];
   const clock = last ? last.timestamp_s : 0;
-  // Stream coordinates drive formation shift; the rendered ball snaps to tokens.
   const ball = last ? { x: toX(last.x), y: toY(last.y) } : { x: 52.5, y: 34 };
 
   const lastPass = [...shown].reverse().find((e) => e.type === "pass");
   const passFrom = lastPass && last && lastPass.id !== last.id ? lastPass : null;
 
-  // Live token positions: base formation + team shift + drift + pass dynamics.
   const tokens = useMemo(() => {
     const pos = new Map<string, { x: number; y: number; d: BaseDot }>();
     for (const d of base) pos.set(d.p.id, { ...shiftDot(d, ball.x, ball.y, clock), d });
 
-    // Passer leans toward the pass; receiver runs toward the intercept point.
     if (lastPass && lastPass.player_id) {
       const spot = pos.get(lastPass.player_id);
       if (spot) {
@@ -119,15 +117,11 @@ export default function Pitch({
   }, [base, ball.x, ball.y, clock, lastPass]);
 
   const carrierId = last?.player_id ?? null;
-
-  // Ball snaps to the carrier's token (stays with them until the next
-  // pass/shot); shots render at the mouth, travelling from the shooter.
   const carrierSpot = carrierId ? tokens.get(carrierId) : undefined;
   const isShot = last?.type === "shot" || last?.type === "goal";
-  const ballRender =
+  const ballTarget =
     isShot || !carrierSpot ? ball : { x: carrierSpot.x, y: carrierSpot.y };
 
-  // Pass vector runs token-to-token so the glide matches the athletes.
   const passVec = useMemo(() => {
     if (!passFrom || !passFrom.player_id) return null;
     const from = tokens.get(passFrom.player_id);
@@ -136,6 +130,64 @@ export default function Pitch({
     if (!from || !to) return null;
     return { x1: from.x, y1: from.y, x2: to.x, y2: to.y };
   }, [tokens, passFrom]);
+
+  // GSAP-driven token interpolation (positions set once via attribute, then tweened).
+  const tokenRefs = useRef(new Map<string, SVGGElement | null>());
+  useLayoutEffect(() => {
+    tokenRefs.current.forEach((el, id) => {
+      const p = tokens.get(id);
+      if (!el || !p) return;
+      gsap.to(el, { x: p.x, y: p.y, duration: 0.5, ease: "power2.out", overwrite: "auto" });
+    });
+  }, [tokens]);
+
+  // GSAP ball kinetics: Bézier arcs for passes, velocity snap for shots.
+  const ballRef = useRef<SVGGElement | null>(null);
+  const ballPos = useRef({ x: 52.5, y: 34 });
+  useLayoutEffect(() => {
+    const el = ballRef.current;
+    if (!el) return;
+    const from = { ...ballPos.current };
+    const to = { x: ballTarget.x, y: ballTarget.y };
+    const dist = Math.hypot(to.x - from.x, to.y - from.y);
+    if (dist < 0.05) return;
+    if (isShot) {
+      gsap.to(el, { x: to.x, y: to.y, duration: 0.45, ease: "power3.in", overwrite: "auto" });
+    } else {
+      const lift = Math.min(6, Math.max(1.2, dist * 0.14));
+      const mx = (from.x + to.x) / 2;
+      const my = (from.y + to.y) / 2 - lift;
+      gsap.to(el, {
+        motionPath: { path: [{ x: from.x, y: from.y }, { x: mx, y: my }, { x: to.x, y: to.y }], curviness: 1.4 },
+        duration: Math.min(0.6, Math.max(0.25, dist / 60)),
+        ease: "power2.out",
+        overwrite: "auto",
+      });
+    }
+    ballPos.current = to;
+  }, [ballTarget, isShot]);
+
+  // One-shot goal impact flash.
+  const impactRef = useRef<SVGCircleElement | null>(null);
+  const shot = useMemo(() => {
+    const tail = shown.slice(-4).reverse();
+    const evt = tail.find((e) => e.type === "shot" || e.type === "goal");
+    if (!evt || !evt.player_id) return null;
+    const spot = tokens.get(evt.player_id);
+    if (!spot) return null;
+    const homeShooting = evt.team_id === home.id;
+    const gx = homeShooting ? 104 : 1;
+    return { evt, sx: spot.x, sy: spot.y, gx, color: homeShooting ? HOME_C : AWAY_C };
+  }, [shown, tokens, home.id]);
+  useLayoutEffect(() => {
+    const el = impactRef.current;
+    if (!el || !shot) return;
+    gsap.fromTo(
+      el,
+      { attr: { r: 1 }, opacity: 0.9 },
+      { attr: { r: 7 }, opacity: 0, duration: 0.8, ease: "power2.out", overwrite: "auto" },
+    );
+  }, [shot?.evt.id]);
 
   const actors = useMemo(() => {
     if (!featured) return [];
@@ -154,18 +206,6 @@ export default function Pitch({
     });
   }, [featured, tokens, lookup]);
 
-  // Fresh shot/goal (within the last 4 streamed events) gets a trajectory cone.
-  const shot = useMemo(() => {
-    const tail = shown.slice(-4).reverse();
-    const evt = tail.find((e) => e.type === "shot" || e.type === "goal");
-    if (!evt || !evt.player_id) return null;
-    const spot = tokens.get(evt.player_id);
-    if (!spot) return null;
-    const homeShooting = evt.team_id === home.id;
-    const gx = homeShooting ? 104 : 1;
-    return { evt, sx: spot.x, sy: spot.y, gx, color: homeShooting ? HOME_C : AWAY_C };
-  }, [shown, tokens, home.id]);
-
   const shotXg = useMemo(() => {
     const evt = [...shown]
       .reverse()
@@ -173,7 +213,6 @@ export default function Pitch({
     return evt?.xg ?? null;
   }, [shown]);
 
-  // Team compactness blocks (width × depth) for the tactical-lines overlay.
   const blocks = useMemo(() => {
     const out: { side: "home" | "away"; x0: number; x1: number; y0: number; y1: number }[] = [];
     for (const side of ["home", "away"] as const) {
@@ -209,20 +248,32 @@ export default function Pitch({
             <stop offset="0.5" stopColor="#0d4a35" />
             <stop offset="1" stopColor="#0a3b2b" />
           </linearGradient>
-          <radialGradient id="flood" cx="0.5" cy="0.4" r="0.7">
-            <stop offset="0" stopColor="#7dffc8" stopOpacity="0.22" />
-            <stop offset="1" stopColor="#000" stopOpacity="0.45" />
+          <radialGradient id="flood" cx="0.5" cy="0.42" r="0.75">
+            <stop offset="0" stopColor="#a7f3d0" stopOpacity="0.20" />
+            <stop offset="0.55" stopColor="#a7f3d0" stopOpacity="0.05" />
+            <stop offset="1" stopColor="#000" stopOpacity="0.55" />
+          </radialGradient>
+          <radialGradient id="vignette" cx="0.5" cy="0.5" r="0.75">
+            <stop offset="0.55" stopColor="#000" stopOpacity="0" />
+            <stop offset="1" stopColor="#000" stopOpacity="0.5" />
           </radialGradient>
           <marker id="arr" markerWidth="4" markerHeight="4" refX="3" refY="2" orient="auto">
-            <path d="M0 0 L4 2 L0 4z" fill="#6ab7ff" />
+            <path d="M0 0 L4 2 L0 4z" fill={HOME_C} />
           </marker>
+          <filter id="softGlow" x="-80%" y="-80%" width="260%" height="260%">
+            <feGaussianBlur stdDeviation="0.9" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
         </defs>
         <rect width="105" height="68" fill="url(#turf)" />
         {Array.from({ length: 10 }).map((_, i) => (
           <rect key={i} x={i * 10.5} width="5.25" height="68" fill="#fff" opacity="0.025" />
         ))}
         <rect width="105" height="68" fill="url(#flood)" />
-        <g fill="none" stroke="#fff" strokeOpacity="0.85" strokeWidth="0.3">
+        <g fill="none" stroke="#fff" strokeOpacity="1" strokeWidth="0.32">
           <rect x="2" y="2" width="101" height="64" />
           <line x1="52.5" y1="2" x2="52.5" y2="66" />
           <circle cx="52.5" cy="34" r="8" />
@@ -234,8 +285,9 @@ export default function Pitch({
           <path d="M87 27.5 A8 8 0 0 0 87 40.5" />
         </g>
         <circle cx="52.5" cy="34" r="0.5" fill="#fff" />
-        <rect x="0.4" y="30" width="1.6" height="8" fill="none" stroke="#fff" strokeWidth="0.3" />
-        <rect x="103" y="30" width="1.6" height="8" fill="none" stroke="#fff" strokeWidth="0.3" />
+        <rect x="0.4" y="30" width="1.6" height="8" fill="none" stroke="#fff" strokeWidth="0.32" />
+        <rect x="103" y="30" width="1.6" height="8" fill="none" stroke="#fff" strokeWidth="0.32" />
+        <rect width="105" height="68" fill="url(#vignette)" />
 
         {showLines &&
           blocks.map((b) => (
@@ -251,28 +303,30 @@ export default function Pitch({
               strokeWidth="0.3"
               strokeDasharray="1.6 1.2"
               rx="1.5"
-              style={{ transition: EASE }}
+              style={{ transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)" }}
             />
           ))}
 
-        {[...tokens.values()].map(({ x, y, d }) => (
+        {[...tokens.values()].map(({ d }) => (
           <g
             key={d.p.id}
-            transform={`translate(${x.toFixed(2)} ${y.toFixed(2)})`}
-            opacity={d.side === "home" ? 0.9 : 0.8}
-            style={{ transition: EASE }}
+            ref={(el) => {
+              tokenRefs.current.set(d.p.id, el);
+            }}
+            transform={`translate(${d.x.toFixed(2)} ${d.y.toFixed(2)})`}
+            opacity={d.side === "home" ? 0.92 : 0.85}
           >
             <circle
               r="1.6"
               fill={d.side === "home" ? HOME_C : AWAY_C}
-              stroke="#0b0f19"
+              stroke="#070A11"
               strokeWidth="0.4"
             />
-            <text y="0.9" textAnchor="middle" fontSize="2.2" fontWeight="700" fill="#0b0f19">
+            <text y="0.9" textAnchor="middle" fontSize="2.2" fontWeight="700" fill="#070A11">
               {d.p.number}
             </text>
             {d.p.id === carrierId && (
-              <circle r="2.5" fill="none" stroke="#fff" strokeWidth="0.4" opacity="0.9" className="pulse-ring" />
+              <circle r="2.5" fill="none" stroke="#fff" strokeWidth="0.4" opacity="0.9" filter="url(#softGlow)" className="pulse-ring" />
             )}
           </g>
         ))}
@@ -340,6 +394,15 @@ export default function Pitch({
               opacity="0.9"
             />
             <circle
+              ref={impactRef}
+              cx={shot.gx}
+              cy={clamp(toY(shot.evt.y), 29, 39)}
+              r="2.2"
+              fill="none"
+              stroke={shot.color}
+              strokeWidth="0.5"
+            />
+            <circle
               cx={shot.gx}
               cy={clamp(toY(shot.evt.y), 29, 39)}
               r="2.2"
@@ -355,9 +418,9 @@ export default function Pitch({
           const surname = a.info.name.split(" ").slice(-1)[0] ?? "";
           const pillW = surname.length * 1.3 + 2.4;
           return (
-            <g key={a.d.p.id} transform={`translate(${a.x.toFixed(2)} ${a.y.toFixed(2)})`} style={{ transition: EASE }}>
-              <circle r="2.6" fill={a.d.side === "home" ? HOME_C : AWAY_C} stroke="#fff" strokeWidth="0.4" />
-              <text y="0.9" textAnchor="middle" fontSize="2.4" fontWeight="700" fill="#0b0f19">
+            <g key={a.d.p.id} transform={`translate(${a.x.toFixed(2)} ${a.y.toFixed(2)})`}>
+              <circle r="2.6" fill={a.d.side === "home" ? HOME_C : AWAY_C} stroke="#fff" strokeWidth="0.4" filter="url(#softGlow)" />
+              <text y="0.9" textAnchor="middle" fontSize="2.4" fontWeight="700" fill="#070A11">
                 {a.info.number}
               </text>
               <rect
@@ -366,8 +429,8 @@ export default function Pitch({
                 width={pillW}
                 height="3.4"
                 rx="1.7"
-                fill="#0b0f19"
-                fillOpacity="0.78"
+                fill="#070A11"
+                fillOpacity="0.82"
               />
               <text y="-4.6" textAnchor="middle" fontSize="2.2" fontWeight="600" fill="#fff">
                 {surname}
@@ -376,18 +439,16 @@ export default function Pitch({
           );
         })}
 
-        {last && (
-          <g transform={`translate(${ballRender.x.toFixed(2)} ${ballRender.y.toFixed(2)})`} style={{ transition: EASE }}>
-            <circle r="2" fill="#3ee6a0" className="pulse-ring" opacity="0.6" />
-            <circle r="1.1" fill="#fff" />
-          </g>
-        )}
+        <g ref={ballRef}>
+          <circle r="2" fill="#fff" filter="url(#softGlow)" opacity="0.95" />
+          <circle r="1.1" fill="#fff" />
+        </g>
 
         {shotXg !== null && (
           <g>
-            <rect x="80" y="55" width="22" height="8" rx="2" fill="#0b0f19" fillOpacity="0.7" stroke="#fff" strokeOpacity="0.15" strokeWidth="0.2" />
+            <rect x="80" y="55" width="22" height="8" rx="2" fill="#070A11" fillOpacity="0.7" stroke="#fff" strokeOpacity="0.15" strokeWidth="0.2" />
             <text x="82" y="58.6" fontSize="2.1" fill="#9aa6c0">SHOT xG</text>
-            <text x="82" y="61.8" fontSize="3" fontWeight="700" fill="#3ee6a0">{shotXg.toFixed(2)}</text>
+            <text x="82" y="61.8" fontSize="3" fontWeight="700" fill={HOME_C}>{shotXg.toFixed(2)}</text>
           </g>
         )}
         <text x="6" y="64" fontSize="2" fill="#fff" fillOpacity="0.5">{attackLabel} ATTACK →</text>

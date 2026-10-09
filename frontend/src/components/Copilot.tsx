@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from "framer-motion";
 import { CornerDownLeft, Loader2, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { API_BASE } from "../types";
@@ -94,7 +95,7 @@ export default function Copilot({
   return (
     <div className="rounded-[28px] border border-white/[0.08] bg-white/[0.045] p-5 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.7)] backdrop-blur-2xl">
       <div className="mb-3 flex items-center gap-2">
-        <span className="grid size-8 place-items-center rounded-xl bg-gradient-to-br from-mint to-sky text-ink">
+        <span className="grid size-8 place-items-center rounded-xl bg-gradient-to-br from-home to-homedeep text-ink">
           <Sparkles size={16} />
         </span>
         <span className="font-display text-sm font-semibold">{title}</span>
@@ -137,13 +138,21 @@ export default function Copilot({
       </form>
       {loading && <p className="mt-3 text-xs text-white/45">{thinking}</p>}
       {failed && !loading && <p className="mt-3 text-xs text-red-300">{errorText}</p>}
-      {response && !loading && (
-        <div className="mt-3">
+      <AnimatePresence mode="wait">
+        {response && !loading && (
+          <motion.div
+            key={response.answer.slice(0, 48)}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="mt-3"
+          >
           <div className="mb-1.5 flex flex-wrap gap-1">
             {badges(response.evidence).map((b) => (
               <span
                 key={b}
-                className="rounded-full border border-mint/30 bg-mint/10 px-2 py-0.5 font-mono text-[11px] text-mint"
+                className="rounded-full border border-home/30 bg-home/10 px-2 py-0.5 font-mono text-[11px] tabular-nums tracking-tight text-home"
               >
                 {b}
               </span>
@@ -155,7 +164,7 @@ export default function Copilot({
               {response.relevant_events.map((e, i) => (
                 <span
                   key={`${e.timestamp_s}-${i}`}
-                  className="rounded-full bg-white/10 px-2 py-0.5 font-mono text-[10px] tabular-nums text-white/60"
+                  className="rounded-full bg-white/10 px-2 py-0.5 font-mono text-[10px] tabular-nums tracking-tight text-white/60"
                 >
                   {e.minute}&prime; {e.type}
                 </span>
@@ -170,14 +179,15 @@ export default function Copilot({
                   setQuery(f);
                   void ask(f);
                 }}
-                className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] text-sky transition hover:bg-white/20"
+                className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] text-home transition hover:bg-white/20"
               >
                 {f}
               </button>
             ))}
           </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

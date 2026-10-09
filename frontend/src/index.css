@@ -5,13 +5,13 @@
 
 html,
 body {
-  background: #0b0f19;
+  background: #070a11;
   color: #e8ecf5;
   -webkit-font-smoothing: antialiased;
 }
 
 ::selection {
-  background: rgba(62, 230, 160, 0.3);
+  background: rgba(0, 242, 254, 0.3);
 }
 
 * {

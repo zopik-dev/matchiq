@@ -1,6 +1,29 @@
 import { useMemo, useState } from "react";
 import type { MomentInfo, MomentumPoint } from "../types";
 
+const HOME_C = "#00F2FE";
+const AWAY_C = "#F59E0B";
+
+function smoothPath(pts: readonly (readonly [number, number])[]): string {
+  if (pts.length === 0) return "";
+  if (pts.length < 3) {
+    return pts.map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(1)} ${y.toFixed(1)}`).join(" ");
+  }
+  let d = `M${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[Math.max(0, i - 1)];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[Math.min(pts.length - 1, i + 2)];
+    const c1x = p1[0] + (p2[0] - p0[0]) / 6;
+    const c1y = p1[1] + (p2[1] - p0[1]) / 6;
+    const c2x = p2[0] - (p3[0] - p1[0]) / 6;
+    const c2y = p2[1] - (p3[1] - p1[1]) / 6;
+    d += ` C${c1x.toFixed(1)} ${c1y.toFixed(1)}, ${c2x.toFixed(1)} ${c2y.toFixed(1)}, ${p2[0].toFixed(1)} ${p2[1].toFixed(1)}`;
+  }
+  return d;
+}
+
 export default function PressureTimeline({
   series,
   moments,
@@ -35,11 +58,17 @@ export default function PressureTimeline({
       ),
     [series],
   );
-  const line = pts.map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(1)} ${y.toFixed(1)}`).join(" ");
+  const line = useMemo(() => smoothPath(pts), [pts]);
   const area = `${line} L${W} ${mid} L0 ${mid} Z`;
   const goals = useMemo(() => moments.filter((m) => m.type === "goal"), [moments]);
 
   const hoverValue = hover !== null ? (series[hover]?.home ?? 0) : 0;
+  const hoverGoal =
+    hover !== null ? goals.find((g) => Math.abs(g.minute - hover) <= 1) ?? null : null;
+  const hoverSurname = (() => {
+    const raw = hoverGoal?.evidence["scorer"];
+    return resolvePlayer(typeof raw === "string" ? raw : null)?.name.split(" ").slice(-1)[0] ?? "";
+  })();
 
   return (
     <div className="relative">
@@ -47,11 +76,11 @@ export default function PressureTimeline({
         <span className="font-display text-[13px] font-semibold tracking-wide text-white">{title}</span>
         <span className="flex items-center gap-4 text-white/55">
           <span className="flex items-center gap-1.5">
-            <i className="size-2 rounded-full bg-sky" />
+            <i className="size-2 rounded-full bg-home" />
             {homeName}
           </span>
           <span className="flex items-center gap-1.5">
-            <i className="size-2 rounded-full bg-amber" />
+            <i className="size-2 rounded-full bg-away" />
             {awayName}
           </span>
         </span>
@@ -67,12 +96,12 @@ export default function PressureTimeline({
       >
         <defs>
           <linearGradient id="up" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#6ab7ff" stopOpacity="0.55" />
-            <stop offset="1" stopColor="#6ab7ff" stopOpacity="0" />
+            <stop offset="0" stopColor={HOME_C} stopOpacity="0.55" />
+            <stop offset="1" stopColor={HOME_C} stopOpacity="0" />
           </linearGradient>
           <linearGradient id="dn" x1="0" y1="1" x2="0" y2="0">
-            <stop offset="0" stopColor="#ffb84d" stopOpacity="0.5" />
-            <stop offset="1" stopColor="#ffb84d" stopOpacity="0" />
+            <stop offset="0" stopColor={AWAY_C} stopOpacity="0.5" />
+            <stop offset="1" stopColor={AWAY_C} stopOpacity="0" />
           </linearGradient>
           <clipPath id="top">
             <rect width={W} height={mid} />
@@ -80,6 +109,13 @@ export default function PressureTimeline({
           <clipPath id="bot">
             <rect y={mid} width={W} height={mid} />
           </clipPath>
+          <filter id="pinGlow" x="-120%" y="-120%" width="340%" height="340%">
+            <feGaussianBlur stdDeviation="3.2" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
         </defs>
         {[0, 15, 30, 45, 60, 75, 90].map((m) => (
           <g key={m}>
@@ -102,16 +138,17 @@ export default function PressureTimeline({
         <path d={line} fill="none" stroke="#fff" strokeOpacity="0.9" strokeWidth="1.6" strokeLinejoin="round" />
         {goals.map((g) => {
           const x = (g.minute / 90) * W;
-          const c = g.team_id === homeId ? "#6ab7ff" : "#ffb84d";
+          const c = g.team_id === homeId ? HOME_C : AWAY_C;
           return (
             <g
               key={g.id}
               className="cursor-pointer"
               onClick={() => onSeek(g.minute)}
+              filter="url(#pinGlow)"
             >
               <title>{g.title}</title>
               <line x1={x} x2={x} y1="16" y2={H - 14} stroke={c} strokeOpacity="0.5" strokeDasharray="2 3" />
-              <circle cx={x} cy="12" r="9" fill="#0b0f19" stroke={c} strokeWidth="1.5" />
+              <circle cx={x} cy="12" r="9" fill="#070A11" stroke={c} strokeWidth="1.5" />
               <circle cx={x} cy="12" r="3.6" fill="none" stroke="#fff" strokeWidth="1" />
               <path d={`M${x - 1.6} ${12 - 1} l1.6 -1.2 l1.6 1.2 l-.6 1.9 h-2z`} fill="#fff" />
             </g>
@@ -122,7 +159,7 @@ export default function PressureTimeline({
           x2={(Math.min(90, minute) / 90) * W}
           y1="0"
           y2={H}
-          stroke="#3ee6a0"
+          stroke={HOME_C}
           strokeOpacity="0.7"
           strokeDasharray="3 2"
         />
@@ -140,9 +177,11 @@ export default function PressureTimeline({
       </svg>
       <div className="mt-2 flex items-center justify-between text-xs text-white/55">
         <span>
-          {hover !== null
-            ? `${hover}′ · ${hoverValue >= 0 ? homeName : awayName} ${Math.abs(hoverValue).toFixed(0)} momentum`
-            : hint}
+          {hoverGoal
+            ? `⚽ ${hoverGoal.minute}′ ${hoverSurname} — ${hoverGoal.title}`
+            : hover !== null
+              ? `${hover}′ · ${hoverValue >= 0 ? homeName : awayName} ${Math.abs(hoverValue).toFixed(0)} momentum`
+              : hint}
         </span>
         <span className="flex gap-3">
           {goals.map((g) => {

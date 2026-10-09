@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from "framer-motion";
 import { Flag } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { controls, fetchMatch, streamUrl } from "./api";
@@ -35,7 +36,6 @@ export default function App() {
   const [events, setEvents] = useState<PitchEvent[]>([]);
   const [feed, setFeed] = useState<MomentDetail[]>([]);
   const [hops, setHops] = useState<Hop[]>([]);
-  const [momentum, setMomentum] = useState<{ home: number } | null>(null);
   const [sideTab, setSideTab] = useState<"insight" | "copilot">("insight");
   const profileRef = useRef(profile);
   profileRef.current = profile;
@@ -68,9 +68,8 @@ export default function App() {
       setConnected(true);
     });
     on("event", (d) =>
-      setEvents((prev) => [...prev.slice(-59), d as PitchEvent]),
+      setEvents((prev) => [...prev.slice(-119), d as PitchEvent]),
     );
-    on("momentum", (d) => setMomentum(d as { home: number }));
     on("moment", (d) =>
       setFeed((prev) => {
         const detail = d as MomentDetail;
@@ -138,13 +137,23 @@ export default function App() {
     const point = match?.poss_series[idx] ?? { home: 50, away: 50 };
     return { home: point.home, away: point.away };
   }, [match, minute]);
-  const chancesSoFar = useMemo(
-    () =>
-      (match?.moments ?? []).filter(
-        (m) => (m.type === "big_chance" || m.type === "goal") && m.minute <= minute,
-      ).length,
-    [match, minute],
-  );
+  // Live PPDA over the streamed window: opponent passes per defensive action.
+  const ppda = useMemo(() => {
+    const calc = (teamId: string | undefined, oppId: string | undefined) => {
+      if (!teamId || !oppId) return null;
+      const def = events.filter(
+        (e) =>
+          e.team_id === teamId &&
+          (e.type === "tackle" ||
+            e.type === "interception" ||
+            e.type === "foul" ||
+            e.type === "pressure"),
+      ).length;
+      const oppPasses = events.filter((e) => e.team_id === oppId && e.type === "pass").length;
+      return def === 0 ? null : oppPasses / def;
+    };
+    return { home: calc(home?.id, away?.id), away: calc(away?.id, home?.id) };
+  }, [events, home, away]);
 
   if (!match || !home || !away) {
     return (
@@ -236,32 +245,48 @@ export default function App() {
                 role="tab"
                 aria-selected={sideTab === tab}
                 onClick={() => setSideTab(tab)}
-                className={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${
-                  sideTab === tab ? "bg-white text-ink shadow-lg" : "text-white/60 hover:text-white"
+                className={`relative rounded-full px-4 py-1.5 text-xs font-semibold transition ${
+                  sideTab === tab ? "text-ink" : "text-white/60 hover:text-white"
                 }`}
               >
-                {tab === "insight" ? t.tabInsight : t.copilotTitle}
+                {sideTab === tab && (
+                  <motion.span
+                    layoutId="sideTabPill"
+                    className="absolute inset-0 rounded-full bg-white shadow-lg"
+                    transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                  />
+                )}
+                <span className="relative z-10">
+                  {tab === "insight" ? `🎙️ ${t.tabInsight}` : `💡 ${t.copilotTitle}`}
+                </span>
               </button>
             ))}
           </div>
 
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={sideTab}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              className="flex flex-col gap-4"
+            >
           {sideTab === "insight" ? (
             <>
               <Narrative featured={featured} mode={profile.mode} empty={t.noMoments} />
 
               <Metrics
                 title={t.metricsTitle}
-                possessionLabel={t.possession}
                 shotLabel={t.shotXg}
                 matchLabel={t.matchXg}
-                momentumLabel={t.momentumNow}
-                chancesLabel={t.bigChances}
+                ppdaLabel={t.ppda}
+                dominanceLabel={t.dominance}
                 minute={minute}
                 featured={featured}
                 xg={xgSoFar}
                 poss={possSoFar}
-                momentum={momentum}
-                chancesSoFar={chancesSoFar}
+                ppda={ppda}
                 homeName={home.name}
                 awayName={away.name}
                 lookup={lookup}
@@ -304,7 +329,7 @@ export default function App() {
                 </div>
                 <div className="mb-2 mt-3 flex items-center justify-between">
                   <span className="font-display text-sm font-semibold">{t.storyline}</span>
-                  <span className="font-mono text-[11px] text-white/40">
+                  <span className="font-mono text-[11px] tabular-nums tracking-tight text-white/40">
                     {feed.length}/{match.moments.length}
                   </span>
                 </div>
@@ -312,7 +337,7 @@ export default function App() {
                   {feed.length === 0 ? (
                     <p className="text-sm text-white/40">{t.noMoments}</p>
                   ) : (
-                    <Feed items={feed} />
+                    <Feed items={feed.slice(-6)} />
                   )}
                 </div>
               </Glass>
@@ -328,6 +353,8 @@ export default function App() {
               errorText={t.copilotError}
             />
           )}
+            </motion.div>
+          </AnimatePresence>
         </aside>
       </main>
 
