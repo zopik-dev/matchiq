@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import type { MomentInfo, MomentumPoint } from "../types";
 
-const HOME_C = "#00F2FE";
-const AWAY_C = "#F59E0B";
+const HOME_C = "#2563EB";
+const AWAY_C = "#DC2626";
 
 function smoothPath(pts: readonly (readonly [number, number])[]): string {
   if (pts.length === 0) return "";
@@ -98,11 +98,11 @@ export default function PressureTimeline({
       >
         <defs>
           <linearGradient id="up" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor={HOME_C} stopOpacity="0.55" />
+            <stop offset="0" stopColor={HOME_C} stopOpacity="0.28" />
             <stop offset="1" stopColor={HOME_C} stopOpacity="0" />
           </linearGradient>
           <linearGradient id="dn" x1="0" y1="1" x2="0" y2="0">
-            <stop offset="0" stopColor={AWAY_C} stopOpacity="0.5" />
+            <stop offset="0" stopColor={AWAY_C} stopOpacity="0.26" />
             <stop offset="1" stopColor={AWAY_C} stopOpacity="0" />
           </linearGradient>
           <clipPath id="top">
@@ -111,13 +111,6 @@ export default function PressureTimeline({
           <clipPath id="bot">
             <rect y={mid} width={W} height={mid} />
           </clipPath>
-          <filter id="pinGlow" x="-120%" y="-120%" width="340%" height="340%">
-            <feGaussianBlur stdDeviation="3.2" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
         </defs>
         {[0, 15, 30, 45, 60, 75, 90].map((m) => (
           <g key={m}>
@@ -134,10 +127,10 @@ export default function PressureTimeline({
             </text>
           </g>
         ))}
-        <line x1="0" x2={W} y1={mid} y2={mid} stroke="#fff" strokeOpacity="0.18" />
+        <line x1="0" x2={W} y1={mid} y2={mid} stroke="#fff" strokeOpacity="0.3" strokeWidth="1" />
         <path d={area} fill="url(#up)" clipPath="url(#top)" />
         <path d={area} fill="url(#dn)" clipPath="url(#bot)" />
-        <path d={line} fill="none" stroke="#fff" strokeOpacity="0.9" strokeWidth="1.6" strokeLinejoin="round" />
+        <path d={line} fill="none" stroke="#fff" strokeOpacity="0.85" strokeWidth="1.5" strokeLinejoin="round" />
         {goals.map((g) => {
           const x = (g.minute / 90) * W;
           const c = g.team_id === homeId ? HOME_C : AWAY_C;
@@ -148,10 +141,9 @@ export default function PressureTimeline({
               onClick={() => (onGoalPin ?? onSeek)(g.minute)}
             >
               <title>{g.title}</title>
-              <line x1={x} x2={x} y1="16" y2={H - 14} stroke={c} strokeOpacity="0.5" strokeDasharray="2 3" />
-              <circle cx={x} cy="12" r="9" fill="#070A11" stroke={c} strokeWidth="1.5" />
-              <circle cx={x} cy="12" r="3.6" fill="none" stroke="#fff" strokeWidth="1" />
-              <path d={`M${x - 1.6} ${12 - 1} l1.6 -1.2 l1.6 1.2 l-.6 1.9 h-2z`} fill="#fff" />
+              <line x1={x} x2={x} y1="16" y2={H - 14} stroke={c} strokeOpacity="0.45" strokeDasharray="2 3" />
+              <circle cx={x} cy="12" r="8" fill="#090D16" stroke={c} strokeWidth="1.25" />
+              <circle cx={x} cy="12" r="2.6" fill="#fff" />
             </g>
           );
         })}
@@ -160,8 +152,8 @@ export default function PressureTimeline({
           x2={(Math.min(90, minute) / 90) * W}
           y1="0"
           y2={H}
-          stroke={HOME_C}
-          strokeOpacity="0.7"
+          stroke="#fff"
+          strokeOpacity="0.5"
           strokeDasharray="3 2"
         />
         {hover !== null && (

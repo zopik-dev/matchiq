@@ -2,6 +2,12 @@
 
 Log of non-obvious decisions (newest first).
 
+- (Frontend Apple TV Minimal) Dropped the neon/sci-fi system (cyan #00F2FE, amber
+  #F59E0B, glow filters, floodlit gradients, pulsing halos) for a restrained
+  editorial look: graphite canvas #090D16, matte cards #0F1626, moss turf #0C2317
+  with 35%-opacity markings, matte team accents (blue #2563EB, crimson #DC2626),
+  system font stack. All interactions (22-player focus, X-Ray stepper, live
+  audio, SSE wiring) untouched — visuals only.
 - (Speech) Hybrid commentary audio: Azure Speech TTS via stdlib `urllib` REST
   (no SDK, honoring the small-deps rule) with an MD5 in-memory MP3 cache;
   missing `MATCHIQ_AZURE_SPEECH_KEY` returns `{"status": "fallback_client"}` and

@@ -1,13 +1,12 @@
 import gsap from "gsap";
 import { MotionPathPlugin } from "gsap/MotionPathPlugin";
-import { motion } from "framer-motion";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { MomentDetail, PitchEvent, Player, Team } from "../types";
 
 gsap.registerPlugin(MotionPathPlugin);
 
-const HOME_C = "#00F2FE";
-const AWAY_C = "#F59E0B";
+const HOME_C = "#2563EB";
+const AWAY_C = "#DC2626";
 
 const toX = (x: number) => (x / 100) * 105;
 const toY = (y: number) => (y / 100) * 68;
@@ -183,8 +182,6 @@ export default function Pitch({
     ballPos.current = to;
   }, [ballTarget, isShot]);
 
-  // One-shot goal impact flash.
-  const impactRef = useRef<SVGCircleElement | null>(null);
   const shot = useMemo(() => {
     const tail = shown.slice(-4).reverse();
     const evt = tail.find((e) => e.type === "shot" || e.type === "goal");
@@ -195,16 +192,6 @@ export default function Pitch({
     const gx = homeShooting ? 104 : 1;
     return { evt, sx: spot.x, sy: spot.y, gx, color: homeShooting ? HOME_C : AWAY_C };
   }, [shown, tokens, home.id]);
-  useLayoutEffect(() => {
-    const el = impactRef.current;
-    if (!el || !shot) return;
-    gsap.fromTo(
-      el,
-      { attr: { r: 1 }, opacity: 0.9 },
-      { attr: { r: 7 }, opacity: 0, duration: 0.8, ease: "power2.out", overwrite: "auto" },
-    );
-  }, [shot?.evt.id]);
-
   const actors = useMemo(() => {
     if (!featured) return [];
     const ids = [
@@ -278,36 +265,18 @@ export default function Pitch({
       >
         <defs>
           <linearGradient id="turf" x1="0" x2="1">
-            <stop offset="0" stopColor="#0a3b2b" />
-            <stop offset="0.5" stopColor="#0d4a35" />
-            <stop offset="1" stopColor="#0a3b2b" />
+            <stop offset="0" stopColor="#0C2317" />
+            <stop offset="0.5" stopColor="#0C2317" />
+            <stop offset="1" stopColor="#0C2317" />
           </linearGradient>
-          <radialGradient id="flood" cx="0.5" cy="0.42" r="0.75">
-            <stop offset="0" stopColor="#a7f3d0" stopOpacity="0.20" />
-            <stop offset="0.55" stopColor="#a7f3d0" stopOpacity="0.05" />
-            <stop offset="1" stopColor="#000" stopOpacity="0.55" />
-          </radialGradient>
-          <radialGradient id="vignette" cx="0.5" cy="0.5" r="0.75">
-            <stop offset="0.55" stopColor="#000" stopOpacity="0" />
-            <stop offset="1" stopColor="#000" stopOpacity="0.5" />
-          </radialGradient>
-          <marker id="arr" markerWidth="4" markerHeight="4" refX="3" refY="2" orient="auto">
-            <path d="M0 0 L4 2 L0 4z" fill={HOME_C} />
-          </marker>
-          <filter id="softGlow" x="-80%" y="-80%" width="260%" height="260%">
-            <feGaussianBlur stdDeviation="0.9" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
         </defs>
         <rect width="105" height="68" fill="url(#turf)" />
-        {Array.from({ length: 10 }).map((_, i) => (
-          <rect key={i} x={i * 10.5} width="5.25" height="68" fill="#fff" opacity="0.025" />
+        {Array.from({ length: 12 }).map((_, i) => (
+          i % 2 === 0 ? (
+            <rect key={i} x={i * 8.75} width="8.75" height="68" fill="#fff" opacity="0.018" />
+          ) : null
         ))}
-        <rect width="105" height="68" fill="url(#flood)" />
-        <g fill="none" stroke="#fff" strokeOpacity="1" strokeWidth="0.32">
+        <g fill="none" stroke="#fff" strokeOpacity="0.35" strokeWidth="0.3">
           <rect x="2" y="2" width="101" height="64" />
           <line x1="52.5" y1="2" x2="52.5" y2="66" />
           <circle cx="52.5" cy="34" r="8" />
@@ -319,9 +288,8 @@ export default function Pitch({
           <path d="M87 27.5 A8 8 0 0 0 87 40.5" />
         </g>
         <circle cx="52.5" cy="34" r="0.5" fill="#fff" />
-        <rect x="0.4" y="30" width="1.6" height="8" fill="none" stroke="#fff" strokeWidth="0.32" />
-        <rect x="103" y="30" width="1.6" height="8" fill="none" stroke="#fff" strokeWidth="0.32" />
-        <rect width="105" height="68" fill="url(#vignette)" />
+        <rect x="0.4" y="30" width="1.6" height="8" fill="none" stroke="#fff" strokeOpacity="0.35" strokeWidth="0.3" />
+        <rect x="103" y="30" width="1.6" height="8" fill="none" stroke="#fff" strokeOpacity="0.35" strokeWidth="0.3" />
 
         {showLines &&
           blocks.map((b) => (
@@ -359,26 +327,17 @@ export default function Pitch({
             <circle
               r="1.6"
               fill={d.side === "home" ? HOME_C : AWAY_C}
-              stroke="#070A11"
+              stroke="#090D16"
               strokeWidth="0.4"
             />
-            <text y="0.9" textAnchor="middle" fontSize="2.2" fontWeight="700" fill="#070A11">
+            <text y="0.9" textAnchor="middle" fontSize="2.2" fontWeight="700" fill="#fff">
               {d.p.number}
             </text>
             {d.p.id === focusedId && (
-              <motion.circle
-                r="2.6"
-                fill="none"
-                stroke="#fff"
-                strokeWidth="0.55"
-                initial={{ opacity: 0.9, scale: 0.7 }}
-                animate={{ opacity: [0.9, 0.35, 0.9], scale: [0.75, 1.25, 0.75] }}
-                transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
-                style={{ transformBox: "fill-box", transformOrigin: "center" }}
-              />
+              <circle r="2.6" fill="none" stroke="#fff" strokeWidth="0.45" opacity="0.95" />
             )}
             {d.p.id === carrierId && d.p.id !== focusedId && (
-              <circle r="2.5" fill="none" stroke="#fff" strokeWidth="0.4" opacity="0.9" className="pulse-ring" />
+              <circle r="2.5" fill="none" stroke="#fff" strokeWidth="0.35" opacity="0.85" />
             )}
           </g>
         ))}
@@ -388,9 +347,9 @@ export default function Pitch({
             key={e.id}
             cx={toX(e.x)}
             cy={toY(e.y)}
-            r="0.7"
+            r="0.55"
             fill="#fff"
-            opacity={0.15 + (0.5 * (i + 1)) / shown.length}
+            opacity={0.06 + (0.22 * (i + 1)) / shown.length}
           />
         ))}
 
@@ -398,11 +357,10 @@ export default function Pitch({
           <path
             d={`M${passVec.x1} ${passVec.y1} L${passVec.x2} ${passVec.y2}`}
             stroke="#fff"
-            strokeWidth="0.45"
-            strokeDasharray="1.6 1.4"
-            className="dash-anim"
+            strokeOpacity="0.55"
+            strokeWidth="0.35"
+            strokeDasharray="4 4"
             fill="none"
-            markerEnd="url(#arr)"
           />
         ) : (
           passFrom &&
@@ -410,58 +368,30 @@ export default function Pitch({
             <path
               d={`M${toX(passFrom.x)} ${toY(passFrom.y)} L${toX(last.x)} ${toY(last.y)}`}
               stroke="#fff"
-              strokeWidth="0.45"
-              strokeDasharray="1.6 1.4"
-              className="dash-anim"
+              strokeOpacity="0.55"
+              strokeWidth="0.35"
+              strokeDasharray="4 4"
               fill="none"
-              markerEnd="url(#arr)"
             />
           )
         )}
 
         {shot && (
           <g>
-            <polygon
-              points={`${shot.sx},${shot.sy} ${shot.gx},27 ${shot.gx},41`}
-              fill={shot.color}
-              opacity="0.16"
-            />
             <line
               x1={shot.sx}
               y1={shot.sy}
               x2={shot.gx}
               y2={clamp(toY(shot.evt.y), 28, 40)}
-              stroke={shot.color}
-              strokeWidth="0.5"
-              strokeDasharray="1.4 1.2"
-              className="dash-anim"
-            />
-            <circle
-              cx={shot.sx}
-              cy={shot.sy}
-              r="2.6"
-              fill="none"
               stroke="#fff"
-              strokeWidth="0.5"
-              opacity="0.9"
-            />
-            <circle
-              ref={impactRef}
-              cx={shot.gx}
-              cy={clamp(toY(shot.evt.y), 29, 39)}
-              r="2.2"
-              fill="none"
-              stroke={shot.color}
-              strokeWidth="0.5"
+              strokeOpacity="0.85"
+              strokeWidth="0.4"
             />
             <circle
               cx={shot.gx}
               cy={clamp(toY(shot.evt.y), 29, 39)}
-              r="2.2"
-              fill="none"
-              stroke={shot.color}
-              strokeWidth="0.5"
-              className="pulse-ring"
+              r="1.1"
+              fill="#fff"
             />
           </g>
         )}
@@ -471,20 +401,19 @@ export default function Pitch({
             <polyline
               points={xrayPts.pts.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ")}
               fill="none"
-              stroke={HOME_C}
-              strokeWidth="0.55"
-              strokeDasharray="1.8 1.2"
-              className="dash-anim"
-              opacity="0.95"
+              stroke="#fff"
+              strokeOpacity="0.8"
+              strokeWidth="0.4"
+              strokeDasharray="4 4"
             />
             {xrayPts.pts.map((p, i) => (
               <circle
                 key={i}
                 cx={p.x}
                 cy={p.y}
-                r={i === xrayPts.pts.length - 1 ? 1.5 : 0.9}
-                fill={i === xrayPts.pts.length - 1 ? "#fff" : HOME_C}
-                stroke="#070A11"
+                r={i === xrayPts.pts.length - 1 ? 1.3 : 0.8}
+                fill={i === xrayPts.pts.length - 1 ? "#fff" : "#94A3B8"}
+                stroke="#090D16"
                 strokeWidth="0.3"
               />
             ))}
@@ -495,10 +424,10 @@ export default function Pitch({
                 width="22"
                 height={xrayPts.done ? 10 : 6}
                 rx="2"
-                fill="#070A11"
-                fillOpacity="0.82"
-                stroke={HOME_C}
-                strokeOpacity="0.5"
+                fill="#090D16"
+                fillOpacity="0.92"
+                stroke="#fff"
+                strokeOpacity="0.25"
                 strokeWidth="0.25"
               />
               {xrayPts.done ? (
@@ -542,8 +471,8 @@ export default function Pitch({
           const pillW = surname.length * 1.3 + 2.4;
           return (
             <g key={a.d.p.id} transform={`translate(${a.x.toFixed(2)} ${a.y.toFixed(2)})`}>
-              <circle r="2.6" fill={a.d.side === "home" ? HOME_C : AWAY_C} stroke="#fff" strokeWidth="0.4" filter="url(#softGlow)" />
-              <text y="0.9" textAnchor="middle" fontSize="2.4" fontWeight="700" fill="#070A11">
+              <circle r="2.6" fill={a.d.side === "home" ? HOME_C : AWAY_C} stroke="#fff" strokeWidth="0.35" />
+              <text y="0.9" textAnchor="middle" fontSize="2.4" fontWeight="700" fill="#fff">
                 {a.info.number}
               </text>
               <rect
@@ -552,8 +481,8 @@ export default function Pitch({
                 width={pillW}
                 height="3.4"
                 rx="1.7"
-                fill="#070A11"
-                fillOpacity="0.82"
+                fill="#090D16"
+                fillOpacity="0.92"
               />
               <text y="-4.6" textAnchor="middle" fontSize="2.2" fontWeight="600" fill="#fff">
                 {surname}
@@ -563,15 +492,14 @@ export default function Pitch({
         })}
 
         <g ref={ballRef}>
-          <circle r="2" fill="#fff" filter="url(#softGlow)" opacity="0.95" />
-          <circle r="1.1" fill="#fff" />
+          <circle r="1.4" fill="#fff" stroke="#090D16" strokeOpacity="0.3" strokeWidth="0.3" />
         </g>
 
         {shotXg !== null && (
           <g>
-            <rect x="80" y="55" width="22" height="8" rx="2" fill="#070A11" fillOpacity="0.7" stroke="#fff" strokeOpacity="0.15" strokeWidth="0.2" />
-            <text x="82" y="58.6" fontSize="2.1" fill="#9aa6c0">SHOT xG</text>
-            <text x="82" y="61.8" fontSize="3" fontWeight="700" fill={HOME_C}>{shotXg.toFixed(2)}</text>
+            <rect x="80" y="55" width="22" height="8" rx="2" fill="#090D16" fillOpacity="0.85" stroke="#fff" strokeOpacity="0.2" strokeWidth="0.2" />
+            <text x="82" y="58.6" fontSize="2.1" fill="#94A3B8">SHOT xG</text>
+            <text x="82" y="61.8" fontSize="3" fontWeight="700" fill="#fff">{shotXg.toFixed(2)}</text>
           </g>
         )}
         <text x="6" y="64" fontSize="2" fill="#fff" fillOpacity="0.5">{attackLabel} ATTACK →</text>

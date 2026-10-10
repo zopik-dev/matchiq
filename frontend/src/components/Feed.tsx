@@ -47,27 +47,27 @@ export default function Feed({
             transition={{ duration: 0.3, ease: "easeOut" }}
             onClick={clickable ? () => onGoalClick(item.moment_id) : undefined}
             title={clickable ? `${item.moment_type} · ${item.minute}′` : undefined}
-            className={`rounded-2xl border border-white/[0.07] bg-black/20 p-3.5 ${
-              clickable ? "cursor-pointer transition hover:border-home/40" : ""
+            className={`rounded-xl border border-white/[0.06] bg-white/[0.03] p-3.5 ${
+              clickable ? "cursor-pointer transition hover:border-white/20" : ""
             }`}
           >
             <div className="mb-1.5 flex items-center gap-2">
-              <Icon size={14} className="text-home" />
-              <span className="rounded-full bg-white/10 px-2 py-0.5 font-mono text-[11px] tabular-nums tracking-tight text-white">
+              <Icon size={14} className="text-white/70" />
+              <span className="rounded-full bg-white/[0.07] px-2 py-0.5 font-mono text-[11px] tabular-nums text-white">
                 {item.minute}&prime;
               </span>
               <div className="flex flex-wrap gap-1">
                 {badges(item.evidence).map((b) => (
                   <span
                     key={b}
-                    className="rounded-full border border-home/30 bg-home/10 px-2 py-0.5 font-mono text-[11px] tabular-nums tracking-tight text-home"
+                    className="rounded-full bg-white/[0.07] px-2 py-0.5 font-mono text-[11px] tabular-nums text-white/70"
                   >
                     {b}
                   </span>
                 ))}
               </div>
             </div>
-            <p className="text-sm leading-snug text-white/80">{item.line ?? item.story}</p>
+            <p className="text-sm font-medium leading-snug tracking-tight text-white">{item.line ?? item.story}</p>
           </motion.article>
         );
       })}

@@ -315,15 +315,6 @@ export default function App() {
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-ink text-white">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(60% 50% at 30% 0%, rgba(0,242,254,0.08), transparent 70%), radial-gradient(50% 45% at 100% 20%, rgba(245,158,11,0.07), transparent 70%)",
-        }}
-      />
-
       <Header
         home={home}
         away={away}
@@ -341,7 +332,7 @@ export default function App() {
 
       <main className="relative mx-auto grid w-full max-w-[1400px] min-h-0 flex-1 gap-6 px-4 pb-4 pt-6 lg:grid-cols-[minmax(0,1fr)_400px] lg:px-8">
         <section className="flex min-h-0 flex-col gap-4 overflow-y-auto pr-0.5">
-          <Glass className="shrink-0 rounded-[28px] p-3 sm:p-4">
+          <Glass className="shrink-0 p-3 sm:p-4">
             <div className="flex items-center justify-between px-2 pb-3 pt-1">
               <div>
                 <div className="text-[11px] uppercase tracking-[0.18em] text-white/45">
@@ -362,7 +353,7 @@ export default function App() {
                 </span>
               </div>
             </div>
-            <div className="overflow-hidden rounded-2xl shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_30px_80px_-30px_rgba(0,242,254,0.25)]">
+            <div className="overflow-hidden rounded-lg border border-white/[0.06]">
               <Pitch
                 home={home}
                 away={away}
@@ -378,7 +369,7 @@ export default function App() {
             </div>
           </Glass>
 
-          <Glass className="rounded-[28px] p-5">
+          <Glass className="p-5">
             <PressureTimeline
               series={match.momentum_series}
               moments={match.moments}
@@ -396,7 +387,7 @@ export default function App() {
         </section>
 
         <aside className="flex min-h-0 flex-col gap-3 overflow-y-auto pr-0.5 lg:sticky lg:top-24 lg:self-start">
-          <div role="tablist" className="flex shrink-0 gap-1 self-start rounded-full bg-black/30 p-1">
+          <div role="tablist" className="flex shrink-0 gap-1 self-start rounded-full bg-white/[0.05] p-1">
             {(["insight", "player", "copilot"] as const).map((tab) => (
               <button
                 key={tab}
@@ -404,13 +395,13 @@ export default function App() {
                 aria-selected={sideTab === tab}
                 onClick={() => setSideTab(tab)}
                 className={`relative rounded-full px-4 py-1.5 text-xs font-semibold transition ${
-                  sideTab === tab ? "text-ink" : "text-white/60 hover:text-white"
+                  sideTab === tab ? "text-white" : "text-white/55 hover:text-white"
                 }`}
               >
                 {sideTab === tab && (
                   <motion.span
                     layoutId="sideTabPill"
-                    className="absolute inset-0 rounded-full bg-white shadow-lg"
+                    className="absolute inset-0 rounded-full bg-white/[0.14]"
                     transition={{ type: "spring", stiffness: 400, damping: 32 }}
                   />
                 )}
@@ -446,12 +437,12 @@ export default function App() {
                   >
                     <Glass className="p-4">
                       <div className="mb-1 flex items-center justify-between">
-                        <span className="font-mono text-[11px] uppercase tracking-[0.16em] tabular-nums tracking-tight text-home">
+                        <span className="font-mono text-[11px] uppercase tracking-[0.16em] tabular-nums text-white/70">
                           X-Ray · {xray.minute}&prime; · {xray.score ?? ""}
                         </span>
                         <button
                           onClick={closeXray}
-                          className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] text-white/70 transition hover:bg-white/20 hover:text-white"
+                          className="rounded-full bg-white/[0.07] px-2.5 py-1 text-[11px] text-white/70 transition hover:bg-white/[0.12] hover:text-white"
                         >
                           {t.xrayExit} ✕
                         </button>
@@ -462,7 +453,7 @@ export default function App() {
                           aria-label="previous step"
                           onClick={() => setXrayIndex((i) => Math.max(0, i - 1))}
                           disabled={xrayIndex <= 0}
-                          className="grid size-8 shrink-0 place-items-center rounded-full bg-white/10 text-white transition hover:bg-white/20 disabled:opacity-30"
+                          className="grid size-8 shrink-0 place-items-center rounded-full bg-white/[0.07] text-white transition hover:bg-white/[0.12] disabled:opacity-30"
                         >
                           ◀
                         </button>
@@ -480,7 +471,7 @@ export default function App() {
                                 aria-label={`step ${i + 1}`}
                                 onClick={() => setXrayIndex(i)}
                                 className={`h-1.5 rounded-full transition-all ${
-                                  i === xrayIndex ? "w-6 bg-home" : "w-1.5 bg-white/25 hover:bg-white/50"
+                                  i === xrayIndex ? "w-6 bg-white" : "w-1.5 bg-white/25 hover:bg-white/50"
                                 }`}
                               />
                             ))}
@@ -492,7 +483,7 @@ export default function App() {
                             setXrayIndex((i) => Math.min(xray.steps.length - 1, i + 1))
                           }
                           disabled={xrayIndex >= xray.steps.length - 1}
-                          className="grid size-8 shrink-0 place-items-center rounded-full bg-white/10 text-white transition hover:bg-white/20 disabled:opacity-30"
+                          className="grid size-8 shrink-0 place-items-center rounded-full bg-white/[0.07] text-white transition hover:bg-white/[0.12] disabled:opacity-30"
                         >
                           ▶
                         </button>

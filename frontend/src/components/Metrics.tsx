@@ -16,24 +16,18 @@ function Stat({
   label,
   children,
   sub,
-  accent,
 }: {
   label: string;
   children: React.ReactNode;
   sub?: string;
-  accent?: boolean;
 }) {
   return (
     <motion.div
       layout
-      className="rounded-2xl border border-white/[0.07] bg-black/20 p-3.5"
+      className="rounded-lg border border-white/[0.04] bg-[#131C30] p-3"
     >
-      <div className="text-[11px] uppercase tracking-[0.14em] text-white/45">{label}</div>
-      <div
-        className={`mt-1 font-display text-2xl font-semibold tabular-nums tracking-tight ${
-          accent ? "text-home" : "text-white"
-        }`}
-      >
+      <div className="text-[11px] uppercase tracking-[0.14em] text-[#94A3B8]">{label}</div>
+      <div className="mt-1 text-2xl font-semibold tabular-nums tracking-tight text-white">
         {children}
       </div>
       {sub && <div className="mt-0.5 text-xs text-white/50">{sub}</div>}
@@ -85,35 +79,35 @@ export default function Metrics({
 
   return (
     <Glass className="p-5">
-      <div className="mb-3 font-mono text-[11px] uppercase tracking-[0.16em] tabular-nums tracking-tight text-white/45">
+      <div className="mb-3 font-mono text-[11px] uppercase tracking-[0.16em] tabular-nums text-[#94A3B8]">
         {title} · {minute.toFixed(0)}&prime;
       </div>
       <div className="grid grid-cols-2 gap-3">
-        <Stat label={shotLabel} sub={shotWho ?? undefined} accent>
+        <Stat label={shotLabel} sub={shotWho ?? undefined}>
           {shotXg !== null ? <AnimatedNumber value={shotXg} decimals={2} /> : "—"}
         </Stat>
         <Stat label={matchLabel} sub={homeName}>
-          <span className="font-mono tabular-nums tracking-tight">
+          <span className="font-mono tabular-nums">
             <AnimatedNumber value={xg.home} decimals={1} />
             {" – "}
             <AnimatedNumber value={xg.away} decimals={1} />
           </span>
         </Stat>
         <Stat label={ppdaLabel} sub={`${homeName} · ${awayName}`}>
-          <span className="font-mono tabular-nums tracking-tight">
+          <span className="font-mono tabular-nums">
             {fmtPpda(ppda.home)} · {fmtPpda(ppda.away)}
           </span>
         </Stat>
-        <Stat label={dominanceLabel} sub={poss.home >= 50 ? homeName : awayName} accent>
-          <span className="font-mono tabular-nums tracking-tight">
+        <Stat label={dominanceLabel} sub={poss.home >= 50 ? homeName : awayName}>
+          <span className="font-mono tabular-nums">
             <AnimatedNumber value={poss.home} decimals={0} />%
           </span>
         </Stat>
       </div>
       <div className="mt-4">
-        <div className="h-1.5 overflow-hidden rounded-full bg-away/70">
+        <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
           <motion.div
-            className="h-full rounded-full bg-home"
+            className="h-full rounded-full bg-white/80"
             animate={{ width: `${poss.home}%` }}
             transition={{ type: "spring", stiffness: 60, damping: 20 }}
           />

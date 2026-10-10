@@ -8,9 +8,7 @@ export default function Glass({
   className?: string;
 }) {
   return (
-    <div
-      className={`rounded-2xl border border-white/[0.07] bg-[#0B111E]/80 shadow-[0_12px_40px_rgba(0,0,0,0.5)] backdrop-blur-2xl ${className}`}
-    >
+    <div className={`rounded-xl border border-white/[0.06] bg-[#0F1626] shadow-sm ${className}`}>
       {children}
     </div>
   );

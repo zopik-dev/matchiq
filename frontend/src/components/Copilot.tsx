@@ -97,12 +97,12 @@ export default function Copilot({
   };
 
   return (
-    <div className="rounded-[28px] border border-white/[0.08] bg-white/[0.045] p-5 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.7)] backdrop-blur-2xl">
+    <div className="rounded-xl border border-white/[0.06] bg-[#0F1626] p-5 shadow-sm">
       <div className="mb-3 flex items-center gap-2">
-        <span className="grid size-8 place-items-center rounded-xl bg-gradient-to-br from-home to-homedeep text-ink">
+        <span className="grid size-8 place-items-center rounded-lg bg-white/[0.08] text-white">
           <Sparkles size={16} />
         </span>
-        <span className="font-display text-sm font-semibold">{title}</span>
+        <span className="text-sm font-semibold tracking-tight text-white">{title}</span>
       </div>
       <div className="mb-2.5 flex flex-wrap gap-1.5">
         {quickPills(homeName, awayName, profile.lang).map((pill) => (
@@ -112,7 +112,7 @@ export default function Copilot({
               setQuery(pill);
               void ask(pill);
             }}
-            className="rounded-full border border-white/10 bg-black/30 px-2.5 py-1 text-[11px] text-white/70 transition hover:border-mint/40 hover:text-white"
+            className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] text-white/70 transition hover:border-white/25 hover:text-white"
           >
             {pill}
           </button>
@@ -129,12 +129,12 @@ export default function Copilot({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={placeholder}
-          className="min-w-0 flex-1 rounded-full border border-white/10 bg-black/30 px-3.5 py-2 text-sm text-white placeholder:text-white/35 focus:border-mint/50 focus:outline-none"
+          className="min-w-0 flex-1 rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-2 text-sm text-white placeholder:text-white/35 focus:border-white/30 focus:outline-none"
         />
         <button
           type="submit"
           aria-label="send"
-          className="grid size-9 shrink-0 place-items-center rounded-full bg-white text-ink transition hover:bg-mint disabled:opacity-40"
+          className="grid size-9 shrink-0 place-items-center rounded-full bg-white text-black transition hover:bg-white/85 disabled:opacity-40"
           disabled={loading || !query.trim()}
         >
           {loading ? <Loader2 size={16} className="animate-spin" /> : <CornerDownLeft size={16} />}
@@ -156,13 +156,13 @@ export default function Copilot({
             {badges(response.evidence).map((b) => (
               <span
                 key={b}
-                className="rounded-full border border-home/30 bg-home/10 px-2 py-0.5 font-mono text-[11px] tabular-nums tracking-tight text-home"
+                className="rounded-full bg-white/[0.07] px-2 py-0.5 font-mono text-[11px] tabular-nums text-white/70"
               >
                 {b}
               </span>
             ))}
           </div>
-          <p className="text-sm leading-snug text-white/85">{response.answer}</p>
+          <p className="text-sm leading-relaxed text-white">{response.answer}</p>
           {onSpeak && (
             <button
               onClick={() => onSpeak(response.answer)}
@@ -170,8 +170,8 @@ export default function Copilot({
               aria-label="Read this answer aloud"
               className={`mt-2 grid size-8 place-items-center rounded-full transition ${
                 speaking
-                  ? "bg-home text-ink"
-                  : "bg-white/10 text-white/70 hover:bg-white/20 hover:text-white"
+                  ? "bg-white text-black"
+                  : "bg-white/[0.07] text-white/70 hover:bg-white/[0.12] hover:text-white"
               }`}
             >
               🔊
@@ -197,7 +197,7 @@ export default function Copilot({
                   setQuery(f);
                   void ask(f);
                 }}
-                className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] text-home transition hover:bg-white/20"
+                className="rounded-full bg-white/[0.07] px-2.5 py-1 text-[11px] text-white/70 transition hover:bg-white/[0.12] hover:text-white"
               >
                 {f}
               </button>

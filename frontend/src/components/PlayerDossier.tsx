@@ -28,9 +28,9 @@ interface Dossier {
 
 function Tile({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
-    <div className="rounded-2xl border border-white/[0.07] bg-black/20 p-3">
-      <div className="text-[10px] uppercase tracking-[0.14em] text-white/45">{label}</div>
-      <div className="mt-0.5 font-display text-xl font-semibold tabular-nums tracking-tight text-white">
+    <div className="rounded-lg border border-white/[0.04] bg-[#131C30] p-3">
+      <div className="text-[10px] uppercase tracking-[0.14em] text-[#94A3B8]">{label}</div>
+      <div className="mt-0.5 font-mono text-xl font-semibold tabular-nums text-white">
         {value}
       </div>
       {sub && <div className="mt-0.5 text-[11px] text-white/50">{sub}</div>}
@@ -133,14 +133,14 @@ export default function PlayerDossier({
             transition={{ duration: 0.3, ease: "easeOut" }}
           >
             <div className="flex items-center gap-3">
-              <span className="grid size-12 place-items-center rounded-2xl bg-gradient-to-br from-home to-homedeep font-display text-xl font-bold text-ink">
+              <span className="grid size-12 place-items-center rounded-lg bg-white font-mono text-xl font-bold text-black">
                 {dossier.number}
               </span>
               <div>
-                <h2 className="font-display text-xl font-bold leading-tight tracking-tight">
+                <h2 className="text-xl font-semibold leading-tight tracking-tight text-white">
                   {dossier.name}
                 </h2>
-                <p className="font-mono text-[11px] tabular-nums tracking-tight text-white/50">
+                <p className="font-mono text-[11px] tabular-nums text-[#94A3B8]">
                   {dossier.touches} touches
                 </p>
               </div>
@@ -171,7 +171,7 @@ export default function PlayerDossier({
                 <Tile label={labels.duels} value={`${dossier.duels_won}`} />
               )}
             </div>
-            <p className="mt-3 border-l-2 border-home/60 pl-3 text-sm leading-snug text-white/80">
+            <p className="mt-3 border-l-2 border-white/25 pl-3 text-sm leading-snug text-white/85">
               {dossier.insight}
             </p>
           </motion.div>
