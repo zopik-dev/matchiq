@@ -28,7 +28,7 @@ interface Dossier {
 
 function Tile({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
-    <div className="rounded-lg border border-white/[0.04] bg-[#131C30] p-3">
+    <div className="mi-tile p-3">
       <div className="text-[10px] uppercase tracking-[0.14em] text-[#94A3B8]">{label}</div>
       <div className="mt-0.5 font-mono text-xl font-semibold tabular-nums text-white">
         {value}
@@ -106,7 +106,7 @@ export default function PlayerDossier({
         </span>
         <button
           onClick={onClear}
-          className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] text-white/70 transition hover:bg-white/20 hover:text-white"
+          className="mi-chip rounded-full px-2.5 py-1 text-[11px] text-white/70 transition hover:text-white"
         >
           <X size={11} className="mr-1 inline" />
           {labels.clear}
@@ -133,7 +133,9 @@ export default function PlayerDossier({
             transition={{ duration: 0.3, ease: "easeOut" }}
           >
             <div className="flex items-center gap-3">
-              <span className="grid size-12 place-items-center rounded-lg bg-white font-mono text-xl font-bold text-black">
+              <span className="grid size-12 place-items-center rounded-xl border border-white/20 bg-[#101010] font-mono text-xl font-bold text-white"
+                style={{ boxShadow: "inset 0 1px 1px rgba(255,255,255,0.25), inset 0 -8px 12px rgba(0,0,0,0.5)" }}
+              >
                 {dossier.number}
               </span>
               <div>
@@ -171,7 +173,7 @@ export default function PlayerDossier({
                 <Tile label={labels.duels} value={`${dossier.duels_won}`} />
               )}
             </div>
-            <p className="mt-3 border-l-2 border-white/25 pl-3 text-sm leading-snug text-white/85">
+            <p className="mt-3 border-l-2 border-[#5EA0FF]/70 pl-3 text-sm leading-snug text-white/85">
               {dossier.insight}
             </p>
           </motion.div>

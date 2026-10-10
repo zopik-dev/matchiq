@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import type { MomentInfo, MomentumPoint } from "../types";
 
-const HOME_C = "#2563EB";
+const HOME_C = "#3B82F6";
 const AWAY_C = "#DC2626";
 
 function smoothPath(pts: readonly (readonly [number, number])[]): string {
@@ -130,7 +130,15 @@ export default function PressureTimeline({
         <line x1="0" x2={W} y1={mid} y2={mid} stroke="#fff" strokeOpacity="0.3" strokeWidth="1" />
         <path d={area} fill="url(#up)" clipPath="url(#top)" />
         <path d={area} fill="url(#dn)" clipPath="url(#bot)" />
-        <path d={line} fill="none" stroke="#fff" strokeOpacity="0.85" strokeWidth="1.5" strokeLinejoin="round" />
+        <path
+          d={line}
+          fill="none"
+          stroke="#fff"
+          strokeOpacity="0.9"
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+          style={{ filter: "drop-shadow(0 0 5px hsla(210,100%,70%,0.45))" }}
+        />
         {goals.map((g) => {
           const x = (g.minute / 90) * W;
           const c = g.team_id === homeId ? HOME_C : AWAY_C;

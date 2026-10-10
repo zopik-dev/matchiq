@@ -1,8 +1,9 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { CornerDownLeft, Loader2, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { useState } from "react";
 import { API_BASE } from "../types";
 import type { Profile } from "../types";
+import GenerateButton from "./GenerateButton";
 
 export interface CopilotEvent {
   minute: number;
@@ -97,9 +98,9 @@ export default function Copilot({
   };
 
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-[#0F1626] p-5 shadow-sm">
+    <div className="mi-surface p-5">
       <div className="mb-3 flex items-center gap-2">
-        <span className="grid size-8 place-items-center rounded-lg bg-white/[0.08] text-white">
+        <span className="grid size-8 place-items-center rounded-lg border border-white/20 bg-[#101010] text-white">
           <Sparkles size={16} />
         </span>
         <span className="text-sm font-semibold tracking-tight text-white">{title}</span>
@@ -112,7 +113,7 @@ export default function Copilot({
               setQuery(pill);
               void ask(pill);
             }}
-            className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] text-white/70 transition hover:border-white/25 hover:text-white"
+            className="rounded-full border border-white/10 bg-black/40 px-2.5 py-1 text-[11px] text-white/70 transition hover:border-[hsla(210,100%,70%,0.5)] hover:text-white"
           >
             {pill}
           </button>
@@ -129,16 +130,16 @@ export default function Copilot({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={placeholder}
-          className="min-w-0 flex-1 rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-2 text-sm text-white placeholder:text-white/35 focus:border-white/30 focus:outline-none"
+          className="mi-input min-w-0 flex-1 rounded-full px-3.5 py-2 text-sm text-white placeholder:text-white/35"
         />
-        <button
-          type="submit"
-          aria-label="send"
-          className="grid size-9 shrink-0 place-items-center rounded-full bg-white text-black transition hover:bg-white/85 disabled:opacity-40"
+        <GenerateButton
+          small
+          idle={profile.lang === "uk" ? "Питай" : "Ask"}
+          busy={profile.lang === "uk" ? "Думаю" : "Thinking"}
+          isBusy={loading}
           disabled={loading || !query.trim()}
-        >
-          {loading ? <Loader2 size={16} className="animate-spin" /> : <CornerDownLeft size={16} />}
-        </button>
+          title="send"
+        />
       </form>
       {loading && <p className="mt-3 text-xs text-white/45">{thinking}</p>}
       {failed && !loading && <p className="mt-3 text-xs text-red-300">{errorText}</p>}
@@ -156,7 +157,7 @@ export default function Copilot({
             {badges(response.evidence).map((b) => (
               <span
                 key={b}
-                className="rounded-full bg-white/[0.07] px-2 py-0.5 font-mono text-[11px] tabular-nums text-white/70"
+                className="mi-chip rounded-full px-2 py-0.5 font-mono text-[11px] tabular-nums text-white/70"
               >
                 {b}
               </span>
@@ -164,14 +165,14 @@ export default function Copilot({
           </div>
           <p className="text-sm leading-relaxed text-white">{response.answer}</p>
           {onSpeak && (
-            <button
+              <button
               onClick={() => onSpeak(response.answer)}
               title="Read this answer aloud"
               aria-label="Read this answer aloud"
-              className={`mt-2 grid size-8 place-items-center rounded-full transition ${
+              className={`mt-2 grid size-8 place-items-center rounded-full border transition ${
                 speaking
-                  ? "bg-white text-black"
-                  : "bg-white/[0.07] text-white/70 hover:bg-white/[0.12] hover:text-white"
+                  ? "border-white/25 bg-white/[0.14] text-white"
+                  : "border-white/10 bg-black/40 text-white/70 hover:text-white"
               }`}
             >
               🔊
@@ -197,7 +198,7 @@ export default function Copilot({
                   setQuery(f);
                   void ask(f);
                 }}
-                className="rounded-full bg-white/[0.07] px-2.5 py-1 text-[11px] text-white/70 transition hover:bg-white/[0.12] hover:text-white"
+                className="rounded-full border border-white/10 bg-black/40 px-2.5 py-1 text-[11px] text-white/70 transition hover:border-[hsla(210,100%,70%,0.5)] hover:text-white"
               >
                 {f}
               </button>

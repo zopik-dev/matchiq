@@ -47,20 +47,24 @@ export default function Feed({
             transition={{ duration: 0.3, ease: "easeOut" }}
             onClick={clickable ? () => onGoalClick(item.moment_id) : undefined}
             title={clickable ? `${item.moment_type} · ${item.minute}′` : undefined}
-            className={`rounded-xl border border-white/[0.06] bg-white/[0.03] p-3.5 ${
-              clickable ? "cursor-pointer transition hover:border-white/20" : ""
+            className={`mi-tile p-3.5 ${
+              clickable ? "cursor-pointer transition hover:border-white/25" : ""
             }`}
           >
             <div className="mb-1.5 flex items-center gap-2">
-              <Icon size={14} className="text-white/70" />
-              <span className="rounded-full bg-white/[0.07] px-2 py-0.5 font-mono text-[11px] tabular-nums text-white">
+              <Icon
+                size={14}
+                className="text-white"
+                style={{ filter: "drop-shadow(0 0 3px hsla(210,100%,70%,0.7))" }}
+              />
+              <span className="mi-chip rounded-full px-2 py-0.5 font-mono text-[11px] tabular-nums text-white">
                 {item.minute}&prime;
               </span>
               <div className="flex flex-wrap gap-1">
                 {badges(item.evidence).map((b) => (
                   <span
                     key={b}
-                    className="rounded-full bg-white/[0.07] px-2 py-0.5 font-mono text-[11px] tabular-nums text-white/70"
+                    className="rounded-full border border-white/10 bg-black/40 px-2 py-0.5 font-mono text-[11px] tabular-nums text-white/70"
                   >
                     {b}
                   </span>

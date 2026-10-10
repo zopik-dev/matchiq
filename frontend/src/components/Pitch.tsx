@@ -5,7 +5,7 @@ import type { MomentDetail, PitchEvent, Player, Team } from "../types";
 
 gsap.registerPlugin(MotionPathPlugin);
 
-const HOME_C = "#2563EB";
+const HOME_C = "#3B82F6";
 const AWAY_C = "#DC2626";
 
 const toX = (x: number) => (x / 100) * 105;
@@ -248,9 +248,16 @@ export default function Pitch({
     <div className="relative">
       <button
         onClick={() => setShowLines((v) => !v)}
-        className={`absolute right-2 top-2 z-10 rounded-full px-2.5 py-1 text-[11px] font-semibold transition ${
-          showLines ? "bg-white text-ink" : "bg-black/40 text-white/60 hover:text-white"
+        className={`absolute right-2 top-2 z-10 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition ${
+          showLines
+            ? "border-white/25 bg-white/[0.14] text-white"
+            : "border-white/10 bg-black/50 text-white/60 hover:text-white"
         }`}
+        style={
+          showLines
+            ? { boxShadow: "inset 0 -8px 12px -6px rgba(255,255,255,0.15), inset 0 -16px 16px -8px hsla(210,100%,70%,0.25)" }
+            : undefined
+        }
       >
         Tactical Lines
       </button>
@@ -329,7 +336,9 @@ export default function Pitch({
               fill={d.side === "home" ? HOME_C : AWAY_C}
               stroke="#090D16"
               strokeWidth="0.4"
+              style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.6))" }}
             />
+            <circle cx="-0.5" cy="-0.55" r="0.45" fill="#fff" opacity="0.5" />
             <text y="0.9" textAnchor="middle" fontSize="2.2" fontWeight="700" fill="#fff">
               {d.p.number}
             </text>
@@ -493,6 +502,7 @@ export default function Pitch({
 
         <g ref={ballRef}>
           <circle r="1.4" fill="#fff" stroke="#090D16" strokeOpacity="0.3" strokeWidth="0.3" />
+          <circle cx="-0.4" cy="-0.45" r="0.42" fill="#fff" opacity="0.9" />
         </g>
 
         {shotXg !== null && (

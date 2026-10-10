@@ -49,9 +49,16 @@ export default function Breakdown({
         {steps.map((s, i) => (
           <li key={s.id} className="relative">
             <span
-              className={`absolute -left-[26px] top-1 size-2.5 rounded-full ring-4 ring-[#0F1626] ${
-                i === steps.length - 1 ? "bg-white" : "bg-white/40"
+              className={`absolute -left-[26px] top-1 size-2.5 rounded-full ring-4 ring-[#101010] ${
+                i === steps.length - 1
+                  ? "bg-white"
+                  : "bg-white/40"
               }`}
+              style={
+                i === steps.length - 1
+                  ? { boxShadow: "0 0 8px 1px hsla(210,100%,70%,0.7)" }
+                  : undefined
+              }
             />
             <div className="font-mono text-xs tabular-nums text-white/60">
               {Math.floor(s.timestamp_s / 60)}:{`${Math.floor(s.timestamp_s % 60)}`.padStart(2, "0")}

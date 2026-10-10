@@ -24,7 +24,7 @@ function Stat({
   return (
     <motion.div
       layout
-      className="rounded-lg border border-white/[0.04] bg-[#131C30] p-3"
+      className="mi-tile p-3"
     >
       <div className="text-[11px] uppercase tracking-[0.14em] text-[#94A3B8]">{label}</div>
       <div className="mt-1 text-2xl font-semibold tabular-nums tracking-tight text-white">
@@ -105,9 +105,9 @@ export default function Metrics({
         </Stat>
       </div>
       <div className="mt-4">
-        <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+        <div className="h-1.5 overflow-hidden rounded-full border border-white/10 bg-black/50">
           <motion.div
-            className="h-full rounded-full bg-white/80"
+            className="h-full rounded-full bg-gradient-to-r from-white/90 to-[#5EA0FF]"
             animate={{ width: `${poss.home}%` }}
             transition={{ type: "spring", stiffness: 60, damping: 20 }}
           />

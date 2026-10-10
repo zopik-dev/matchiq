@@ -18,7 +18,7 @@ export default function TracePanel({
     byMoment.set(key, list);
   }
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-[#0F1626] p-4 shadow-sm">
+    <div className="mi-surface p-4">
       <button
         onClick={() => setOpen((v) => !v)}
         className="flex w-full items-center justify-between text-sm font-semibold text-white/85"
@@ -31,7 +31,7 @@ export default function TracePanel({
       {open && (
         <div className="mt-2 max-h-48 space-y-1 overflow-y-auto font-mono text-[11px] text-white/70">
           {[...byMoment.entries()].slice(-12).map(([key, list]) => (
-            <div key={key} className="rounded-lg bg-white/[0.04] px-2 py-1">
+            <div key={key} className="rounded-lg border border-white/[0.06] bg-black/40 px-2 py-1">
               <span className="text-white/40">{key} </span>
               {list.map((h, i) => (
                 <span key={h.seq}>

@@ -4,14 +4,14 @@ export default {
   theme: {
     extend: {
       colors: {
-        ink: "#090D16",
-        panel: "#0F1626",
-        tile: "#131C30",
+        ink: "#08080A",
+        panel: "#101010",
+        tile: "#141416",
         mint: "#9DB4CC",
-        sky: "#9DB4CC",
+        sky: "#7FB3FF",
         amber: "#C9B48A",
-        home: "#2563EB",
-        homedeep: "#1D4ED8",
+        home: "#3B82F6",
+        homedeep: "#2563EB",
         away: "#DC2626",
         awaydeep: "#991B1B",
       },
