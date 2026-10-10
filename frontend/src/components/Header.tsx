@@ -11,9 +11,10 @@ function ClubTag({ id, name, side }: { id: string; name: string; side: "home" | 
   return (
     <span className="flex items-center gap-2">
       <span
-        className={`rounded px-1.5 py-0.5 font-mono text-[10px] font-bold tracking-widest text-white ${
+        className={`rounded-md px-1.5 py-0.5 font-mono text-[10px] font-bold tracking-widest text-white ${
           side === "home" ? "bg-[#2563EB]" : "bg-[#DC2626]"
         }`}
+        style={{ boxShadow: "inset 0 1px 1px rgba(255,255,255,0.35), 0 2px 8px rgba(0,0,0,0.5)" }}
       >
         {badge}
       </span>
@@ -35,6 +36,8 @@ export default function Header({
   audioOn,
   audioSpeaking,
   onToggleAudio,
+  experience,
+  onExperience,
 }: {
   home: Team;
   away: Team;
@@ -47,6 +50,8 @@ export default function Header({
   audioOn: boolean;
   audioSpeaking: boolean;
   onToggleAudio: () => void;
+  experience: "tv" | "console";
+  onExperience: (next: "tv" | "console") => void;
   t: {
     play: string;
     pause: string;
@@ -62,13 +67,16 @@ export default function Header({
     <header className="sticky top-0 z-20 flex justify-center px-4 pt-5">
       <Glass className="flex w-full max-w-6xl flex-col items-center gap-3 px-4 py-3 xl:flex-row xl:justify-between xl:py-2.5 xl:pl-6">
         <div className="flex flex-wrap items-center justify-center gap-3">
-          <span className="flex items-center gap-1.5 rounded-full bg-white/[0.07] px-2 py-0.5 text-[10px] font-bold tracking-widest text-white">
-            <i className="size-1.5 rounded-full bg-[#DC2626]" />
+          <span className="mi-chip flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold tracking-widest text-white">
+            <i
+              className="size-1.5 rounded-full bg-[#DC2626]"
+              style={{ boxShadow: "0 0 6px 1px rgba(220,38,38,0.8)" }}
+            />
             {replay?.playing ? t.live : t.paused}
           </span>
           <div className="flex items-center gap-3">
             <ClubTag id={home.id} name={home.name} side="home" />
-            <span className="rounded-full bg-white/[0.07] px-3.5 py-1 font-mono text-lg font-semibold tabular-nums text-white sm:text-xl">
+            <span className="mi-chip rounded-full px-3.5 py-1 font-mono text-lg font-semibold tabular-nums text-white sm:text-xl">
               {score.home} – {score.away}
             </span>
             <ClubTag id={away.id} name={away.name} side="away" />
@@ -82,7 +90,7 @@ export default function Header({
               onClick={() =>
                 void (replay?.playing ? controls.pause() : controls.play()).then(onReplay)
               }
-              className="rounded-full bg-white p-1.5 text-black transition hover:bg-white/85"
+              className="mi-chip rounded-full p-1.5 text-white transition hover:border-white/30"
             >
               {replay?.playing ? <Pause size={14} /> : <Play size={14} />}
             </button>
@@ -90,9 +98,9 @@ export default function Header({
               <button
                 key={s}
                 onClick={() => void controls.speed(s).then(onReplay)}
-                className={`rounded-full px-2.5 py-1 font-mono text-[11px] tabular-nums ${
+                className={`rounded-full px-2.5 py-1 font-mono text-[11px] tabular-nums transition ${
                   replay?.speed === s
-                    ? "bg-white/[0.14] font-bold text-white"
+                    ? "mi-seg-active font-bold text-white"
                     : "text-white/55 hover:text-white"
                 }`}
               >
@@ -109,7 +117,38 @@ export default function Header({
           </div>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-2">
-          <div role="tablist" className="flex gap-1 rounded-full bg-white/[0.05] p-1">
+          <div
+            role="tablist"
+            aria-label="Experience"
+            className="flex gap-1 rounded-full border border-white/10 bg-black/40 p-1"
+            style={{ boxShadow: "inset 0 2px 6px rgba(0,0,0,0.5)" }}
+          >
+            {(
+              [
+                { id: "tv", label: "📺 TV Broadcast View" },
+                { id: "console", label: "💻 Interactive Console" },
+              ] as const
+            ).map((x) => (
+              <button
+                key={x.id}
+                role="tab"
+                aria-selected={experience === x.id}
+                onClick={() => onExperience(x.id)}
+                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                  experience === x.id
+                    ? "mi-seg-active text-white"
+                    : "text-white/55 hover:text-white"
+                }`}
+              >
+                {x.label}
+              </button>
+            ))}
+          </div>
+          <div
+            role="tablist"
+            className="flex gap-1 rounded-full border border-white/10 bg-black/40 p-1"
+            style={{ boxShadow: "inset 0 2px 6px rgba(0,0,0,0.5)" }}
+          >
             {MODES.map((m) => (
               <button
                 key={m}
@@ -118,7 +157,7 @@ export default function Header({
                 onClick={() => onProfile({ mode: m })}
                 className={`rounded-full px-3 py-1.5 text-xs font-semibold capitalize transition ${
                   profile.mode === m
-                    ? "bg-white/[0.14] text-white"
+                    ? "mi-seg-active text-white"
                     : "text-white/55 hover:text-white"
                 }`}
               >
@@ -126,14 +165,17 @@ export default function Header({
               </button>
             ))}
           </div>
-          <div className="flex gap-1 rounded-full bg-white/[0.05] p-1">
+          <div
+            className="flex gap-1 rounded-full border border-white/10 bg-black/40 p-1"
+            style={{ boxShadow: "inset 0 2px 6px rgba(0,0,0,0.5)" }}
+          >
             {(["en", "uk"] as const).map((l) => (
               <button
                 key={l}
                 onClick={() => onProfile({ lang: l })}
                 className={`rounded-full px-3 py-1.5 font-mono text-xs font-bold uppercase tabular-nums transition ${
                   profile.lang === l
-                    ? "bg-white/[0.14] text-white"
+                    ? "mi-seg-active text-white"
                     : "text-white/55 hover:text-white"
                 }`}
               >
@@ -151,7 +193,7 @@ export default function Header({
             aria-pressed={audioOn}
             title="Toggle live broadcast audio"
             className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-              audioOn ? "bg-white/[0.14] text-white" : "bg-white/[0.05] text-white/55 hover:text-white"
+              audioOn ? "mi-seg-active text-white" : "text-white/55 hover:text-white"
             }`}
           >
             🎙️ Live Audio: {audioOn ? "ON" : "OFF"}
@@ -176,7 +218,12 @@ export default function Header({
 export function BrandMark() {
   return (
     <span className="flex items-center gap-1.5 text-sm font-semibold tracking-tight text-white">
-      <Zap size={15} className="text-white/70" /> MatchIQ
+      <Zap
+        size={15}
+        className="text-white"
+        style={{ filter: "drop-shadow(0 0 4px hsla(210,100%,70%,0.9))" }}
+      />{" "}
+      MatchIQ
     </span>
   );
 }

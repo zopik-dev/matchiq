@@ -3,15 +3,18 @@ import { Flag } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { controls, fetchMatch, streamUrl } from "./api";
 import { useCommentaryAudio } from "./hooks/useCommentaryAudio";
-import Breakdown from "./components/Breakdown";import Copilot from "./components/Copilot";
+import Breakdown from "./components/Breakdown";
+import Copilot from "./components/Copilot";
 import Feed from "./components/Feed";
 import Glass from "./components/Glass";
 import Header, { BrandMark } from "./components/Header";
+import LowerThird from "./components/LowerThird";
 import Metrics from "./components/Metrics";
 import Narrative from "./components/Narrative";
 import Pitch from "./components/Pitch";
 import PlayerDossier from "./components/PlayerDossier";
 import PressureTimeline from "./components/PressureTimeline";
+import Scorebug from "./components/Scorebug";
 import TracePanel from "./components/TracePanel";
 import { STR } from "./strings";
 import type {
@@ -43,6 +46,8 @@ export default function App() {
   const [focusPlayer, setFocusPlayer] = useState<string | null>(null);
   const [xray, setXray] = useState<XrayData | null>(null);
   const [xrayIndex, setXrayIndex] = useState(0);
+  const [experience, setExperience] = useState<"tv" | "console">("console");
+  const [lower, setLower] = useState<MomentDetail | null>(null);
   const profileRef = useRef(profile);
   profileRef.current = profile;
   const { isMuted, isSpeaking, speak, stop, toggleMute } = useCommentaryAudio();
@@ -55,6 +60,31 @@ export default function App() {
   audioOnRef.current = audioOn;
   const langRef = useRef(profile.lang);
   langRef.current = profile.lang;
+  const experienceRef = useRef(experience);
+  experienceRef.current = experience;
+  const lowerTimer = useRef<number | null>(null);
+  const tvCutoff = useRef(-1);
+  const showLower = useCallback((detail: MomentDetail) => {
+    setLower(detail);
+    if (lowerTimer.current) window.clearTimeout(lowerTimer.current);
+    lowerTimer.current = window.setTimeout(() => setLower(null), 8000);
+  }, []);
+  const showLowerRef = useRef(showLower);
+  showLowerRef.current = showLower;
+  useEffect(
+    () => () => {
+      if (lowerTimer.current) window.clearTimeout(lowerTimer.current);
+    },
+    [],
+  );
+  // ESC always drops back to the interactive console.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setExperience("console");
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
   const teamsRef = useRef<{ homeId: string | undefined; awayId: string | undefined }>({
     homeId: undefined,
     awayId: undefined,
@@ -79,15 +109,19 @@ export default function App() {
     setFeed([]);
     setHops([]);
     const source = new EventSource(streamUrl(profileRef.current));
-    const connectedAt = Date.now();
+    // Playhead cutoff at (re)connect: moments at or before it are catch-up
+    // history (never auto-announced); anything after it is genuinely live.
+    tvCutoff.current = -1;
     const on = (kind: string, fn: (data: unknown) => void) => {
       source.addEventListener(kind, (e) => {
         fn(JSON.parse((e as MessageEvent).data));
       });
     };
     on("state", (d) => {
-      setReplay(d as ReplayState);
+      const st = d as ReplayState;
+      setReplay(st);
       setConnected(true);
+      if (tvCutoff.current < 0) tvCutoff.current = st.minute * 60;
     });
     on("event", (d) => {
       const evt = d as PitchEvent;
@@ -115,13 +149,28 @@ export default function App() {
         return [...prev, detail];
       });
       // Auto-play: announce live goals when broadcast audio is ON.
-      // The initial catch-up burst after (re)connect is skipped so a
-      // reconnect mid-match doesn't replay every past goal at once.
+      // Catch-up history (at/before the connect cutoff) never replays.
       if (
         detail.moment_type === "goal" &&
         audioOnRef.current &&
-        Date.now() - connectedAt > 2000
+        detail.timestamp_s > tvCutoff.current
       ) {
+        void speakRef.current(
+          detail.line ?? detail.story,
+          langRef.current,
+          detail.moment_type,
+        );
+      }
+      // TV Broadcast View: key moments raise the automated lower-third
+      // (goals, big chances, tactical shifts) with voice commentary.
+      if (
+        experienceRef.current === "tv" &&
+        (detail.moment_type === "goal" ||
+          detail.moment_type === "big_chance" ||
+          detail.moment_type === "tactical_shift") &&
+        detail.timestamp_s > tvCutoff.current
+      ) {
+        showLowerRef.current(detail);
         void speakRef.current(
           detail.line ?? detail.story,
           langRef.current,
@@ -315,23 +364,66 @@ export default function App() {
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-ink text-white">
-      <Header
-        home={home}
-        away={away}
-        replay={replay}
-        profile={profile}
-        onProfile={changeProfile}
-        onSeek={(m) => void doSeek(m)}
-        onReplay={setReplay}
-        connected={connected}
-        audioOn={audioOn}
-        audioSpeaking={isSpeaking}
-        onToggleAudio={toggleMute}
-        t={t}
-      />
+      <div aria-hidden className="mi-noir">
+        <div className="mi-noir-drift" />
+      </div>
+      <div aria-hidden className="mi-noir-grain" />
 
-      <main className="relative mx-auto grid w-full max-w-[1400px] min-h-0 flex-1 gap-6 px-4 pb-4 pt-6 lg:grid-cols-[minmax(0,1fr)_400px] lg:px-8">
-        <section className="flex min-h-0 flex-col gap-4 overflow-y-auto pr-0.5">
+      {experience === "console" && (
+        <Header
+          home={home}
+          away={away}
+          replay={replay}
+          profile={profile}
+          onProfile={changeProfile}
+          onSeek={(m) => void doSeek(m)}
+          onReplay={setReplay}
+          connected={connected}
+          audioOn={audioOn}
+          audioSpeaking={isSpeaking}
+          onToggleAudio={toggleMute}
+          experience={experience}
+          onExperience={(next) => {
+            if (next === "tv") {
+              // Broadcast talks: make sure commentary is on in TV mode.
+              if (isMuted) toggleMute();
+              setLower(null);
+            }
+            setExperience(next);
+          }}
+          t={t}
+        />
+      )}
+
+      {experience === "tv" && (
+        <div className="relative z-20 mx-auto flex w-full max-w-[1600px] items-start justify-between px-4 pt-4 lg:px-8">
+          <Scorebug home={home} away={away} replay={replay} liveLabel={t.live} />
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => void doSeek(0)}
+              title={t.restart}
+              className="mi-chip rounded-full px-3 py-1.5 text-xs font-semibold text-white/70 transition hover:text-white"
+            >
+              ↺ {t.restart}
+            </button>
+            <button
+              onClick={() => setExperience("console")}
+              className="mi-chip rounded-full px-3 py-1.5 text-xs font-semibold text-white/70 transition hover:text-white"
+            >
+              💻 Interactive Console · ESC
+            </button>
+          </div>
+        </div>
+      )}
+
+      <main
+        className={
+          experience === "tv"
+            ? "relative mx-auto min-h-0 w-full max-w-[1600px] flex-1 overflow-y-auto px-4 pb-24 pt-4 lg:px-8"
+            : "relative mx-auto grid w-full max-w-[1400px] min-h-0 flex-1 auto-rows-max gap-6 overflow-y-auto px-4 pb-4 pt-6 lg:auto-rows-auto lg:grid-cols-[minmax(0,1fr)_400px] lg:overflow-visible lg:px-8"
+        }
+      >
+        <section className="flex min-h-0 flex-col gap-4 overflow-visible pr-0.5 lg:overflow-y-auto">
           <Glass className="shrink-0 p-3 sm:p-4">
             <div className="flex items-center justify-between px-2 pb-3 pt-1">
               <div>
@@ -353,7 +445,7 @@ export default function App() {
                 </span>
               </div>
             </div>
-            <div className="overflow-hidden rounded-lg border border-white/[0.06]">
+            <div className="overflow-hidden rounded-2xl border border-white/[0.13] shadow-[0_16px_48px_rgba(0,0,0,0.6)]">
               <Pitch
                 home={home}
                 away={away}
@@ -369,25 +461,32 @@ export default function App() {
             </div>
           </Glass>
 
-          <Glass className="p-5">
-            <PressureTimeline
-              series={match.momentum_series}
-              moments={match.moments}
-              minute={minute}
-              homeId={home.id}
-              homeName={home.name}
-              awayName={away.name}
-              onSeek={(m) => void doSeek(m)}
-              onGoalPin={(m) => void handleGoalPin(m)}
-              title={t.pressure}
-              hint={t.hoverScrub}
-              resolvePlayer={(id) => (id ? lookup(id) : null)}
-            />
-          </Glass>
+          {experience === "console" && (
+            <Glass className="p-5">
+              <PressureTimeline
+                series={match.momentum_series}
+                moments={match.moments}
+                minute={minute}
+                homeId={home.id}
+                homeName={home.name}
+                awayName={away.name}
+                onSeek={(m) => void doSeek(m)}
+                onGoalPin={(m) => void handleGoalPin(m)}
+                title={t.pressure}
+                hint={t.hoverScrub}
+                resolvePlayer={(id) => (id ? lookup(id) : null)}
+              />
+            </Glass>
+          )}
         </section>
 
-        <aside className="flex min-h-0 flex-col gap-3 overflow-y-auto pr-0.5 lg:sticky lg:top-24 lg:self-start">
-          <div role="tablist" className="flex shrink-0 gap-1 self-start rounded-full bg-white/[0.05] p-1">
+        {experience === "console" && (
+          <aside className="flex min-h-0 flex-col gap-3 overflow-visible pr-0.5 lg:sticky lg:top-24 lg:self-start lg:overflow-y-auto">
+          <div
+            role="tablist"
+            className="flex shrink-0 gap-1 self-start rounded-full border border-white/10 bg-black/40 p-1"
+            style={{ boxShadow: "inset 0 2px 6px rgba(0,0,0,0.5)" }}
+          >
             {(["insight", "player", "copilot"] as const).map((tab) => (
               <button
                 key={tab}
@@ -395,13 +494,17 @@ export default function App() {
                 aria-selected={sideTab === tab}
                 onClick={() => setSideTab(tab)}
                 className={`relative rounded-full px-4 py-1.5 text-xs font-semibold transition ${
-                  sideTab === tab ? "text-white" : "text-white/55 hover:text-white"
+                  sideTab === tab ? "mi-seg-active text-white" : "text-white/55 hover:text-white"
                 }`}
               >
                 {sideTab === tab && (
                   <motion.span
                     layoutId="sideTabPill"
-                    className="absolute inset-0 rounded-full bg-white/[0.14]"
+                    className="absolute inset-0 rounded-full border border-white/[0.16]"
+                    style={{
+                      boxShadow:
+                        "inset 0 -8px 12px -6px rgba(255,255,255,0.12), inset 0 -16px 16px -8px hsla(210,100%,70%,0.22)",
+                    }}
                     transition={{ type: "spring", stiffness: 400, damping: 32 }}
                   />
                 )}
@@ -442,7 +545,7 @@ export default function App() {
                         </span>
                         <button
                           onClick={closeXray}
-                          className="rounded-full bg-white/[0.07] px-2.5 py-1 text-[11px] text-white/70 transition hover:bg-white/[0.12] hover:text-white"
+                          className="mi-chip rounded-full px-2.5 py-1 text-[11px] text-white/70 transition hover:text-white"
                         >
                           {t.xrayExit} ✕
                         </button>
@@ -453,7 +556,7 @@ export default function App() {
                           aria-label="previous step"
                           onClick={() => setXrayIndex((i) => Math.max(0, i - 1))}
                           disabled={xrayIndex <= 0}
-                          className="grid size-8 shrink-0 place-items-center rounded-full bg-white/[0.07] text-white transition hover:bg-white/[0.12] disabled:opacity-30"
+                          className="mi-chip grid size-8 shrink-0 place-items-center rounded-full text-white transition hover:border-white/30 disabled:opacity-30"
                         >
                           ◀
                         </button>
@@ -471,8 +574,15 @@ export default function App() {
                                 aria-label={`step ${i + 1}`}
                                 onClick={() => setXrayIndex(i)}
                                 className={`h-1.5 rounded-full transition-all ${
-                                  i === xrayIndex ? "w-6 bg-white" : "w-1.5 bg-white/25 hover:bg-white/50"
+                                  i === xrayIndex
+                                    ? "w-6 bg-[#5EA0FF]"
+                                    : "w-1.5 bg-white/25 hover:bg-white/50"
                                 }`}
+                                style={
+                                  i === xrayIndex
+                                    ? { boxShadow: "0 0 8px 1px hsla(210,100%,70%,0.7)" }
+                                    : undefined
+                                }
                               />
                             ))}
                           </div>
@@ -483,7 +593,7 @@ export default function App() {
                             setXrayIndex((i) => Math.min(xray.steps.length - 1, i + 1))
                           }
                           disabled={xrayIndex >= xray.steps.length - 1}
-                          className="grid size-8 shrink-0 place-items-center rounded-full bg-white/[0.07] text-white transition hover:bg-white/[0.12] disabled:opacity-30"
+                          className="mi-chip grid size-8 shrink-0 place-items-center rounded-full text-white transition hover:border-white/30 disabled:opacity-30"
                         >
                           ▶
                         </button>
@@ -535,7 +645,7 @@ export default function App() {
                     <select
                       value={profile.club ?? ""}
                       onChange={(e) => changeProfile({ club: e.target.value || null })}
-                      className="max-w-32 rounded-full bg-black/30 px-2 py-1 text-white"
+                      className="mi-chip max-w-32 rounded-full px-2 py-1 text-white"
                     >
                       <option value="">{t.noClub}</option>
                       {[home, away].map((tm) => (
@@ -554,7 +664,7 @@ export default function App() {
                         setFocusPlayer(v);
                         changeProfile({ focus: v });
                       }}
-                      className="min-w-0 flex-1 rounded-full bg-black/30 px-2 py-1 text-white"
+                      className="mi-chip min-w-0 flex-1 rounded-full px-2 py-1 text-white"
                     >
                       <option value="">{t.all}</option>
                       {players.map((p) => (
@@ -618,12 +728,29 @@ export default function App() {
           )}
             </motion.div>
           </AnimatePresence>
-        </aside>
+          </aside>
+        )}
       </main>
 
-      <footer className="relative mx-auto w-full max-w-[1400px] shrink-0 px-4 pb-3 lg:px-8">
-        <TracePanel hops={hops} title={t.trace} />
-      </footer>
+      {experience === "tv" && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-8 z-30 flex justify-center px-4">
+          <AnimatePresence mode="wait">
+            {lower && (
+              <LowerThird
+                detail={lower}
+                teamName={lower.team_id ? (names[lower.team_id] ?? null) : null}
+                lookup={lookup}
+              />
+            )}
+          </AnimatePresence>
+        </div>
+      )}
+
+      {experience === "console" && (
+        <footer className="relative mx-auto w-full max-w-[1400px] shrink-0 px-4 pb-3 lg:px-8">
+          <TracePanel hops={hops} title={t.trace} />
+        </footer>
+      )}
     </div>
   );
 }

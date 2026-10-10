@@ -28,6 +28,29 @@ flowchart LR
 State persists behind the `MatchStore` interface: in-memory by default,
 Azure Cosmos DB when configured.
 
+## Dual-Experience Delivery
+
+MatchIQ serves both hackathon use-cases from the same live engine:
+
+- **📺 TV Broadcast View** (passive living-room experience) — the tactical
+  pitch expands to a full-screen match feed with only a broadcast scorebug
+  (`[NGU] 2–1 [EVR]`, minute, LIVE). Goals, big chances and tactical shifts
+  automatically raise a broadcast lower-third graphic (badge, headline,
+  engine-computed metric pills) with Azure AI Speech commentary, fading out
+  after 8 seconds. ESC or the header pill returns to the console.
+- **💻 Interactive Console** (second-screen OTT companion, default) — the full
+  broadcast dashboard: pitch, pressure timeline, AI narrative, metrics,
+  player dossiers, Tactical Copilot and the agent trace panel.
+
+```mermaid
+flowchart LR
+    LIVE["Live events\nsimulator SSE"] --> ENG["MatchIQ Azure Engine\nengine + agents\n(grounded, offline-capable)"]
+    ENG --> VIZ["Broadcast path\nScorebug + Lower-Third overlay\n(Vizrt-style TV graphics)"]
+    ENG --> OTT["Interactive path\nSecond-screen companion\n(Web/Mobile dashboard)"]
+    VIZ --> TV["📺 Passive TV viewer\nliving room"]
+    OTT --> FAN["💻 Analyst / Fan / Beginner\nstudio + mobile"]
+```
+
 ## Requirements
 
 - Python 3.11+, pip

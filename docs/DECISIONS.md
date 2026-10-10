@@ -2,6 +2,11 @@
 
 Log of non-obvious decisions (newest first).
 
+- (Dual experience) One engine, two presentations: TV Broadcast View (fullscreen
+  pitch, scorebug, auto lower-thirds for goal/big_chance/tactical_shift with
+  speech, 8 s auto-dismiss, ESC to exit) vs Interactive Console (full dashboard).
+  Entering TV auto-enables commentary; lower-third pills use only moment evidence
+  (xG, score, duels, sub names) — never invented transition/speed numbers.
 - (Frontend Apple TV Minimal) Dropped the neon/sci-fi system (cyan #00F2FE, amber
   #F59E0B, glow filters, floodlit gradients, pulsing halos) for a restrained
   editorial look: graphite canvas #090D16, matte cards #0F1626, moss turf #0C2317
