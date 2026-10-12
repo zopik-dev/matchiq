@@ -372,9 +372,7 @@ export default function App() {
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-ink text-white">
-      <div aria-hidden className="mi-noir">
-        <div className="mi-noir-drift" />
-      </div>
+      <div aria-hidden className="mi-noir" />
       <div aria-hidden className="mi-noir-grain" />
 
       {experience === "console" && (
