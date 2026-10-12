@@ -214,7 +214,14 @@ export default function Pitch({
     if (!spot) return null;
     const homeShooting = evt.team_id === home.id;
     const gx = homeShooting ? 104 : 1;
-    return { evt, sx: spot.x, sy: spot.y, gx, color: homeShooting ? HOME_C : AWAY_C };
+    // Short directional tick toward goal (capped): a full-pitch laser to the
+    // goal line reads as a rendering glitch on long shots.
+    const ty = clamp(toY(evt.y), 28, 40);
+    const dx = gx - spot.x;
+    const dy = ty - spot.y;
+    const len = Math.hypot(dx, dy) || 1;
+    const k = Math.min(1, 22 / len);
+    return { evt, sx: spot.x, sy: spot.y, ex: spot.x + dx * k, ey: spot.y + dy * k };
   }, [shown, tokens, home.id]);
   const actors = useMemo(() => {
     if (!featured) return [];
@@ -675,15 +682,15 @@ export default function Pitch({
             <line
               x1={shot.sx}
               y1={shot.sy}
-              x2={shot.gx}
-              y2={clamp(toY(shot.evt.y), 28, 40)}
+              x2={shot.ex}
+              y2={shot.ey}
               stroke="#fff"
               strokeOpacity="0.85"
               strokeWidth="0.4"
             />
             <circle
-              cx={shot.gx}
-              cy={clamp(toY(shot.evt.y), 29, 39)}
+              cx={shot.ex}
+              cy={shot.ey}
               r="1.1"
               fill="#fff"
             />
