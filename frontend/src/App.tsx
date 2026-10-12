@@ -538,7 +538,7 @@ export default function App() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className="flex min-h-0 flex-col gap-3"
+              className="flex min-h-0 w-full shrink-0 flex-col gap-3"
             >
           {sideTab === "insight" ? (
             <>
