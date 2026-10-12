@@ -51,6 +51,23 @@ flowchart LR
     OTT --> FAN["💻 Analyst / Fan / Beginner\nstudio + mobile"]
 ```
 
+## Elite punditry toolkit
+
+- **Pitch Control & Heatmap layers** (pitch header toggle): territorial
+  influence zones (blue/red, ball-weighted) with automatic `NvM OVERLOAD`
+  badges, plus a cumulative emerald→gold→red ball-activity heatmap.
+- **Pundit measuring tool** (`📏 Measure` on the pitch): click any two players
+  for a caliper line with real-metre distance; defender gaps over 22 m under
+  pressure raise `⚠️ DEFENSIVE LINE RUPTURE` — clicking the badge asks the
+  Tactical Copilot for a grounded explanation.
+- **Stadium crowd ambience**: fully procedural Web Audio crowd murmur that
+  roars on goals/chances, ducks to 30% under commentary, and follows the
+  `🎙️ Live Audio` toggle. No audio assets, no dependencies.
+- **Azure AI Foundry**: production chat client (`backend/app/llm/azure.py`,
+  stdlib only) with strict grounding prompt and MockLLM fallback; configure
+  via `MATCHIQ_AZURE_FOUNDRY_ENDPOINT / _API_KEY / _DEPLOYMENT` (default
+  `gpt-4o`), legacy `MATCHIQ_AZURE_*` vars still work.
+
 ## Requirements
 
 - Python 3.11+, pip

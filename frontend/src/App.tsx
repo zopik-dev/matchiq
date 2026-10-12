@@ -3,6 +3,7 @@ import { Flag } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { controls, fetchMatch, streamUrl } from "./api";
 import { useCommentaryAudio } from "./hooks/useCommentaryAudio";
+import { useStadiumAmbience } from "./hooks/useStadiumAmbience";
 import Breakdown from "./components/Breakdown";
 import Copilot from "./components/Copilot";
 import Feed from "./components/Feed";
@@ -48,10 +49,14 @@ export default function App() {
   const [xrayIndex, setXrayIndex] = useState(0);
   const [experience, setExperience] = useState<"tv" | "console">("console");
   const [lower, setLower] = useState<MomentDetail | null>(null);
+  const [copilotAsk, setCopilotAsk] = useState<{ q: string; n: number } | null>(null);
   const profileRef = useRef(profile);
   profileRef.current = profile;
   const { isMuted, isSpeaking, speak, stop, toggleMute } = useCommentaryAudio();
   const audioOn = !isMuted;
+  const ambience = useStadiumAmbience({ muted: isMuted, speaking: isSpeaking });
+  const ambienceRef = useRef(ambience);
+  ambienceRef.current = ambience;
   // Refs so the SSE effect (subscribed once per streamKey) always sees
   // fresh audio state without resubscribing on every toggle.
   const speakRef = useRef(speak);
@@ -144,6 +149,9 @@ export default function App() {
     });
     on("moment", (d) => {
       const detail = d as MomentDetail;
+      // Stadium crowd: roar on goals, smaller surge on big chances.
+      if (detail.moment_type === "goal") ambienceRef.current.roar(2);
+      else if (detail.moment_type === "big_chance") ambienceRef.current.roar(1);
       setFeed((prev) => {
         if (prev.some((m) => m.moment_id === detail.moment_id)) return prev;
         return [...prev, detail];
@@ -456,6 +464,10 @@ export default function App() {
                 focusedId={focusPlayer}
                 onPlayerClick={handleTokenClick}
                 onClearFocus={clearFocus}
+                onRupture={(q) => {
+                  setCopilotAsk({ q, n: Date.now() });
+                  setSideTab("copilot");
+                }}
                 xray={xrayOverlay}
               />
             </div>
@@ -724,6 +736,7 @@ export default function App() {
               errorText={t.copilotError}
               speaking={isSpeaking}
               onSpeak={(text) => void speak(text, profile.lang, "tactical")}
+              externalAsk={copilotAsk}
             />
           )}
             </motion.div>

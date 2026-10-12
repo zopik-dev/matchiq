@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { API_BASE } from "../types";
 import type { Profile } from "../types";
 import GenerateButton from "./GenerateButton";
@@ -61,6 +61,7 @@ export default function Copilot({
   errorText,
   onSpeak,
   speaking,
+  externalAsk,
 }: {
   profile: Profile;
   homeName: string;
@@ -71,11 +72,14 @@ export default function Copilot({
   errorText: string;
   onSpeak?: (text: string) => void;
   speaking?: boolean;
+  /** Pundit rupture questions injected from the pitch: asked once on change. */
+  externalAsk?: { q: string; n: number } | null;
 }) {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState<CopilotResponse | null>(null);
   const [failed, setFailed] = useState(false);
+  const askedNonce = useRef(0);
 
   const ask = async (q: string) => {
     const text = q.trim();
@@ -96,6 +100,16 @@ export default function Copilot({
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (externalAsk && externalAsk.n !== askedNonce.current) {
+      askedNonce.current = externalAsk.n;
+      setQuery(externalAsk.q);
+      void ask(externalAsk.q);
+    }
+    // ask is intentionally Stable-by-closure: fires once per nonce.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [externalAsk]);
 
   return (
     <div className="mi-surface p-5">

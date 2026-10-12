@@ -32,6 +32,12 @@ class Settings:
     azure_api_version: str = field(
         default_factory=lambda: _get("MATCHIQ_AZURE_API_VERSION", "2024-10-01-preview")
     )
+    # Azure AI Foundry inference (preferred over the legacy MATCHIQ_AZURE_* trio).
+    foundry_endpoint: str = field(default_factory=lambda: _get("MATCHIQ_AZURE_FOUNDRY_ENDPOINT"))
+    foundry_api_key: str = field(default_factory=lambda: _get("MATCHIQ_AZURE_FOUNDRY_API_KEY"))
+    foundry_deployment: str = field(
+        default_factory=lambda: _get("MATCHIQ_AZURE_FOUNDRY_DEPLOYMENT", "gpt-4o")
+    )
     # Azure Cosmos DB for match state (see backend/app/store/cosmos.py).
     cosmos_endpoint: str = field(default_factory=lambda: _get("MATCHIQ_COSMOS_ENDPOINT"))
     cosmos_key: str = field(default_factory=lambda: _get("MATCHIQ_COSMOS_KEY"))

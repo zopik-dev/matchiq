@@ -29,6 +29,20 @@ body {
   animation: dash 1.6s linear infinite;
 }
 
+/* Pulsing tactical overload box */
+.mi-overload {
+  animation: mi-overload-pulse 1.6s ease-in-out infinite;
+}
+@keyframes mi-overload-pulse {
+  0%,
+  100% {
+    stroke-opacity: 0.9;
+  }
+  50% {
+    stroke-opacity: 0.25;
+  }
+}
+
 /* ---- Noir Mesh backdrop (monochrome drifting mesh + dither grain) ---- */
 .mi-noir {
   position: fixed;

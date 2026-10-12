@@ -2,6 +2,14 @@
 
 Log of non-obvious decisions (newest first).
 
+- (Elite suite) Pitch Control is a lightweight influence field (21x14 cells,
+  1/(1+d2) falloff, ball-carrier boost) — not a true Voronoi — because token
+  positions are illustrative, not tracked data; overloads fire on 3v2+ counts
+  near the ball. Heatmap accumulates the streamed window (800-pt ring buffer),
+  so seeks rebuild it honestly. Pundit distances read display units as metres
+  (105x68 grid, spec formula). Crowd is 100% procedural Web Audio (no assets);
+  speech ducks it to 30%. Foundry client prefers FOUNDRY_* env, falls back to
+  legacy AZURE_* vars, then MockLLM on any network failure.
 - (Dual experience) One engine, two presentations: TV Broadcast View (fullscreen
   pitch, scorebug, auto lower-thirds for goal/big_chance/tactical_shift with
   speech, 8 s auto-dismiss, ESC to exit) vs Interactive Console (full dashboard).
