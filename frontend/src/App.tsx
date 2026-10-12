@@ -47,7 +47,13 @@ export default function App() {
   const [focusPlayer, setFocusPlayer] = useState<string | null>(null);
   const [xray, setXray] = useState<XrayData | null>(null);
   const [xrayIndex, setXrayIndex] = useState(0);
-  const [experience, setExperience] = useState<"tv" | "console">("console");
+  const [experience, setExperience] = useState<"tv" | "console">(() => {
+    try {
+      return localStorage.getItem("matchiq:experience") === "tv" ? "tv" : "console";
+    } catch {
+      return "console";
+    }
+  });
   const [lower, setLower] = useState<MomentDetail | null>(null);
   const [copilotAsk, setCopilotAsk] = useState<{ q: string; n: number } | null>(null);
   const profileRef = useRef(profile);
@@ -82,14 +88,22 @@ export default function App() {
     },
     [],
   );
-  // ESC always drops back to the interactive console.
+  // Experience with persistence; ESC always drops back to the console.
+  const changeExperience = useCallback((next: "tv" | "console") => {
+    setExperience(next);
+    try {
+      localStorage.setItem("matchiq:experience", next);
+    } catch {
+      /* private mode */
+    }
+  }, []);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setExperience("console");
+      if (e.key === "Escape") changeExperience("console");
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [changeExperience]);
   const teamsRef = useRef<{ homeId: string | undefined; awayId: string | undefined }>({
     homeId: undefined,
     awayId: undefined,
@@ -389,14 +403,14 @@ export default function App() {
           audioSpeaking={isSpeaking}
           onToggleAudio={toggleMute}
           experience={experience}
-          onExperience={(next) => {
-            if (next === "tv") {
-              // Broadcast talks: make sure commentary is on in TV mode.
-              if (isMuted) toggleMute();
-              setLower(null);
-            }
-            setExperience(next);
-          }}
+        onExperience={(next) => {
+          if (next === "tv") {
+            // Broadcast talks: make sure commentary is on in TV mode.
+            if (isMuted) toggleMute();
+            setLower(null);
+          }
+          changeExperience(next);
+        }}
           t={t}
         />
       )}
@@ -413,7 +427,7 @@ export default function App() {
               ↺ {t.restart}
             </button>
             <button
-              onClick={() => setExperience("console")}
+              onClick={() => changeExperience("console")}
               className="mi-chip rounded-full px-3 py-1.5 text-xs font-semibold text-white/70 transition hover:text-white"
             >
               💻 Interactive Console · ESC
@@ -436,7 +450,7 @@ export default function App() {
                 <div className="text-[11px] uppercase tracking-[0.18em] text-white/45">
                   {t.matchCentre}
                 </div>
-                <h1 className="font-display text-xl font-semibold">
+                <h1 className="text-xl font-semibold tracking-tight">
                   <BrandMark /> · {home.name} vs {away.name}
                 </h1>
               </div>
@@ -686,7 +700,7 @@ export default function App() {
                   </label>
                 </div>
                 <div className="mb-2 mt-3 flex items-center justify-between">
-                  <span className="font-display text-sm font-semibold">{t.storyline}</span>
+                  <span className="text-sm font-semibold tracking-tight">{t.storyline}</span>
                   <span className="font-mono text-[11px] tabular-nums tracking-tight text-white/40">
                     {feed.length}/{match.moments.length}
                   </span>

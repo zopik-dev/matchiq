@@ -140,6 +140,16 @@ cd frontend
 npm run build
 ```
 
+## Match controls (frontend)
+
+- Header: play/pause, speeds `1x 10x 60x`, restart, Analyst/Fan/Beginner,
+  EN/UA, `🎙️ Live Audio` (Azure Speech → browser voice fallback + crowd),
+  experience pill `📺 TV / 💻 Console` (remembered, ESC returns to console).
+- Pitch header: layer toggle `Tokens / Pitch Control / Heatmap`,
+  `📏 Measure` (click two players; `⚠️` rupture badge asks the Copilot),
+  `Tactical Lines` team-shape boxes; every token opens the player dossier.
+- TV mode: fullscreen pitch, scorebug, auto lower-thirds, `↺ Restart`.
+
 ## Microsoft & Azure Technologies
 
 - **Azure Container Apps** — backend + frontend deploy as two serverless

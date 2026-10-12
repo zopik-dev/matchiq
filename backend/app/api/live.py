@@ -47,8 +47,6 @@ class LiveSession:
         self.playing = False
         self.speed = 60.0
         self.index = 0
-        self._wake = asyncio.Event()
-        self._wake.clear()
         self._generation = 0
         self._prepared: dict[str, PreparedRun] = {}
 
@@ -56,12 +54,10 @@ class LiveSession:
 
     def play(self) -> dict:
         self.playing = True
-        self._wake.set()
         return self.state()
 
     def pause(self) -> dict:
         self.playing = False
-        self._wake.clear()
         return self.state()
 
     def set_speed(self, speed: float) -> dict:
@@ -169,7 +165,7 @@ class LiveSession:
                 yield ("state", self.state())
                 continue
             if not self.playing:
-                # Poll instead of a bare _wake.wait() so a seek-while-paused
+                # Short poll (instead of a one-shot wait) so a seek-while-paused
                 # resyncs promptly instead of hanging until play.
                 await asyncio.sleep(0.05)
                 continue

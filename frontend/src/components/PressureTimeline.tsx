@@ -75,7 +75,7 @@ export default function PressureTimeline({
   return (
     <div className="relative">
       <div className="mb-3 flex items-center justify-between text-xs">
-        <span className="font-display text-[13px] font-semibold tracking-wide text-white">{title}</span>
+        <span className="text-[13px] font-semibold tracking-tight text-white">{title}</span>
         <span className="flex items-center gap-4 text-white/55">
           <span className="flex items-center gap-1.5">
             <i className="size-2 rounded-full bg-home" />

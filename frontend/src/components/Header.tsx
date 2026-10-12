@@ -18,7 +18,9 @@ function ClubTag({ id, name, side }: { id: string; name: string; side: "home" | 
       >
         {badge}
       </span>
-      <span className="text-sm font-semibold tracking-tight text-white sm:text-base">{name}</span>
+      <span className="hidden text-sm font-semibold tracking-tight text-white min-[430px]:inline sm:text-base">
+        {name}
+      </span>
     </span>
   );
 }
@@ -125,8 +127,8 @@ export default function Header({
           >
             {(
               [
-                { id: "tv", label: "📺 TV Broadcast View" },
-                { id: "console", label: "💻 Interactive Console" },
+                { id: "tv", icon: "📺", full: "TV Broadcast View", short: "TV" },
+                { id: "console", icon: "💻", full: "Interactive Console", short: "Console" },
               ] as const
             ).map((x) => (
               <button
@@ -140,7 +142,9 @@ export default function Header({
                     : "text-white/55 hover:text-white"
                 }`}
               >
-                {x.label}
+                {x.icon}{" "}
+                <span className="hidden sm:inline">{x.full}</span>
+                <span className="sm:hidden">{x.short}</span>
               </button>
             ))}
           </div>

@@ -2,6 +2,11 @@
 
 Log of non-obvious decisions (newest first).
 
+- (Perf) Backdrop is static paint: the animated full-viewport drift layer,
+  blend modes and will-change are gone (weak GPUs fell back to black
+  compositor tiles and the drift never visibly moved there); blur radii cut
+  roughly in half. Dead CSS (dash-anim, noir-drift) and the dead `_wake`
+  event in LiveSession removed; experience choice persists in localStorage.
 - (Elite suite) Pitch Control is a lightweight influence field (21x14 cells,
   1/(1+d2) falloff, ball-carrier boost) — not a true Voronoi — because token
   positions are illustrative, not tracked data; overloads fire on 3v2+ counts
