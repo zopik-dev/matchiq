@@ -122,7 +122,29 @@ export default function App() {
   );
 
   useEffect(() => {
-    fetchMatch().then(setMatch).catch(() => setMatch(null));
+    let alive = true;
+    let timer: number | null = null;
+    const load = () => {
+      fetchMatch()
+        .then((m) => {
+          if (alive) setMatch(m);
+        })
+        .catch(() => {
+          // Backend not up yet (or restarted): show the down screen but
+          // keep retrying in the background until it answers.
+          if (!alive) return;
+          setMatch(null);
+          if (timer) window.clearTimeout(timer);
+          timer = window.setTimeout(() => {
+            if (alive) load();
+          }, 3000);
+        });
+    };
+    load();
+    return () => {
+      alive = false;
+      if (timer) window.clearTimeout(timer);
+    };
   }, []);
 
   useEffect(() => {
