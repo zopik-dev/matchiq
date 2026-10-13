@@ -818,6 +818,8 @@ export default function Pitch({
                 }
               }}
               className={measurePair.rupture && onRupture ? "cursor-pointer" : undefined}
+              role={measurePair.rupture && onRupture ? "button" : undefined}
+              aria-label={measurePair.rupture ? "Explain this gap in Copilot" : undefined}
             >
               <rect
                 x={-(measurePair.label.length * 1.3 + 3) / 2}

@@ -27,6 +27,24 @@ app.include_router(router)
 app.include_router(speech_router)
 
 
+@app.get("/")
+def index() -> dict:
+    """Landing pointer so a bare host:port explains itself instead of 404."""
+    return {
+        "service": "MatchIQ API",
+        "version": "0.1.0",
+        "dashboard": "http://localhost:5173",
+        "health": "/health",
+        "docs": "/docs",
+        "endpoints": [
+            "GET /api/match",
+            "GET /api/replay/stream",
+            "POST /api/speech/synthesize",
+            "POST /api/copilot/ask",
+        ],
+    }
+
+
 @app.get("/health")
 def health() -> dict:
     return {"status": "ok"}
