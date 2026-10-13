@@ -180,3 +180,42 @@ def test_no_real_network_without_key(monkeypatch):
     else:
         raise AssertionError("expected RuntimeError")
     _ = io.BytesIO(b"ok")
+
+
+def test_endpoint_cache_survives_across_requests(monkeypatch):
+    """Repeated identical lines hit the network only once (shared service)."""
+    import app.api.speech as speech_api
+
+    monkeypatch.setenv("MATCHIQ_AZURE_SPEECH_KEY", "cache-key")
+    monkeypatch.setenv("MATCHIQ_AZURE_SPEECH_REGION", "westeurope")
+    reload_settings()
+    speech_api._services.clear()
+    calls = {"n": 0}
+
+    class _FakeResponse:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def read(self):
+            return b"ID3cached-mp3"
+
+    def _fake_urlopen(request, timeout=None):
+        calls["n"] += 1
+        return _FakeResponse()
+
+    monkeypatch.setattr("urllib.request.urlopen", _fake_urlopen)
+    try:
+        client = TestClient(app)
+        body = {"text": "What a goal!", "lang": "en", "moment_type": "goal"}
+        first = client.post("/api/speech/synthesize", json=body)
+        second = client.post("/api/speech/synthesize", json=body)
+        assert first.status_code == 200
+        assert second.content == first.content == b"ID3cached-mp3"
+        assert calls["n"] == 1
+    finally:
+        speech_api._services.clear()
+        monkeypatch.undo()
+        reload_settings()

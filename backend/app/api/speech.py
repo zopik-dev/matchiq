@@ -16,12 +16,22 @@ class SynthesizeBody(BaseModel):
     moment_type: str | None = Field(default=None, max_length=40)
 
 
+# One service (and one MP3 cache) per credentials — a fresh instance per
+# request would make the in-memory cache useless across calls.
+_services: dict[tuple[str, str], AzureSpeechService] = {}
+
+
 def _service() -> AzureSpeechService:
     settings = get_settings()
-    return AzureSpeechService(
-        api_key=settings.azure_speech_key,
-        region=settings.azure_speech_region,
-    )
+    key = (settings.azure_speech_key, settings.azure_speech_region)
+    cached = _services.get(key)
+    if cached is None:
+        cached = AzureSpeechService(
+            api_key=settings.azure_speech_key,
+            region=settings.azure_speech_region,
+        )
+        _services[key] = cached
+    return cached
 
 
 @router.post("/synthesize", response_model=None)
