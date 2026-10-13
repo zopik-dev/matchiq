@@ -428,21 +428,20 @@ export default function Pitch({
       <div className="absolute left-2 top-2 z-10 flex gap-1 rounded-full border border-white/10 bg-black/50 p-1">
         {(
           [
-            ["tokens", "👥", "Tokens"],
-            ["control", "🌐", "Pitch Control"],
-            ["heat", "🔥", "Heatmap"],
+            ["tokens", "👥 Tokens"],
+            ["control", "🌐 Pitch Control"],
+            ["heat", "🔥 Heatmap"],
           ] as const
-        ).map(([id, icon, label]) => (
+        ).map(([id, label]) => (
           <button
             key={id}
             onClick={() => setLayer(id)}
             aria-pressed={layer === id}
-            title={label}
-            className={`rounded-full px-2 py-1 text-[11px] font-semibold transition sm:px-2.5 ${
+            className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition ${
               layer === id ? "mi-seg-active text-white" : "text-white/55 hover:text-white"
             }`}
           >
-            {icon} <span className="hidden sm:inline">{label}</span>
+            {label}
           </button>
         ))}
       </div>
@@ -456,18 +455,18 @@ export default function Pitch({
           }}
           aria-pressed={measuring}
           title="Measure / Pundit Tool"
-          className={`rounded-full border px-2 py-1 text-[11px] font-semibold transition sm:px-2.5 ${
+          className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold transition ${
             measuring
               ? "mi-seg-active text-white"
               : "border-white/10 bg-black/50 text-white/60 hover:text-white"
           }`}
         >
-          📏 <span className="hidden sm:inline">Measure</span>
+          📏 Measure
         </button>
         <button
           onClick={() => setShowLines((v) => !v)}
           title="Tactical Lines"
-          className={`rounded-full border px-2 py-1 text-[11px] font-semibold transition sm:px-2.5 ${
+          className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold transition ${
             showLines
               ? "border-white/25 bg-white/[0.14] text-white"
               : "border-white/10 bg-black/50 text-white/60 hover:text-white"
@@ -478,8 +477,7 @@ export default function Pitch({
             : undefined
         }
       >
-        <span className="hidden sm:inline">Tactical Lines</span>
-        <span className="sm:hidden">Lines</span>
+        Tactical Lines
       </button>
       </div>
       <svg

@@ -391,7 +391,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-ink text-white">
+    <div className="flex h-screen min-w-[1200px] flex-col overflow-y-hidden bg-ink text-white">
       <div aria-hidden className="mi-noir" />
       <div aria-hidden className="mi-noir-grain" />
 
@@ -423,7 +423,7 @@ export default function App() {
       )}
 
       {experience === "tv" && (
-        <div className="relative z-20 mx-auto flex w-full max-w-[1600px] flex-wrap items-start justify-between gap-2 px-4 pt-4 lg:px-8">
+        <div className="relative z-20 mx-auto flex w-full max-w-[1600px] flex-wrap items-start justify-between gap-2 px-8 pt-4">
           <Scorebug home={home} away={away} replay={replay} liveLabel={t.live} />
           <div className="flex items-center gap-2">
             <button
@@ -446,32 +446,34 @@ export default function App() {
       <main
         className={
           experience === "tv"
-            ? "relative mx-auto min-h-0 w-full max-w-[1600px] flex-1 overflow-y-auto px-4 pb-6 pt-4 lg:px-8"
-            : "relative mx-auto grid w-full max-w-[1400px] min-h-0 flex-1 auto-rows-max gap-6 overflow-y-auto px-4 pb-4 pt-6 lg:auto-rows-auto lg:grid-cols-[minmax(0,1fr)_400px] lg:overflow-visible lg:px-8"
+            ? "relative mx-auto min-h-0 w-full max-w-[1600px] flex-1 overflow-y-auto px-8 pb-6 pt-4"
+            : "relative mx-auto grid w-full max-w-[1400px] min-h-0 flex-1 grid-cols-[minmax(0,1fr)_400px] gap-6 overflow-visible px-8 pb-4 pt-6"
         }
       >
-        <section className="flex min-h-0 flex-col gap-4 overflow-visible pr-0.5 lg:overflow-y-auto">
+        <section className="flex min-h-0 flex-col gap-4 overflow-y-auto pr-0.5">
           <Glass className="shrink-0 p-3 sm:p-4">
-            <div className="flex items-center justify-between px-2 pb-3 pt-1">
-              <div>
-                <div className="text-[11px] uppercase tracking-[0.18em] text-white/45">
-                  {t.matchCentre}
+            {experience === "console" && (
+              <div className="flex items-center justify-between px-2 pb-3 pt-1">
+                <div>
+                  <div className="text-[11px] uppercase tracking-[0.18em] text-white/45">
+                    {t.matchCentre}
+                  </div>
+                  <h1 className="text-xl font-semibold tracking-tight">
+                    <BrandMark /> · {home.name} vs {away.name}
+                  </h1>
                 </div>
-                <h1 className="text-xl font-semibold tracking-tight">
-                  <BrandMark /> · {home.name} vs {away.name}
-                </h1>
+                <div className="flex items-center gap-4 text-xs text-white/60">
+                  <span className="flex items-center gap-1.5">
+                    <i className="size-2.5 rounded-full bg-home" />
+                    {home.name}
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <i className="size-2.5 rounded-full bg-away" />
+                    {away.name}
+                  </span>
+                </div>
               </div>
-              <div className="hidden items-center gap-4 text-xs text-white/60 sm:flex">
-                <span className="flex items-center gap-1.5">
-                  <i className="size-2.5 rounded-full bg-home" />
-                  {home.name}
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <i className="size-2.5 rounded-full bg-away" />
-                  {away.name}
-                </span>
-              </div>
-            </div>
+            )}
             <div className="overflow-hidden rounded-2xl border border-white/[0.13] shadow-[0_16px_48px_rgba(0,0,0,0.6)]">
               <Pitch
                 home={home}
@@ -512,7 +514,7 @@ export default function App() {
         </section>
 
         {experience === "console" && (
-          <aside className="flex min-h-0 flex-col gap-3 overflow-visible pr-0.5 lg:sticky lg:top-28 lg:max-h-[calc(100vh-9rem)] lg:self-start lg:overflow-y-auto">
+          <aside className="flex min-h-0 flex-col gap-3 overflow-y-auto pr-0.5 sticky top-28 max-h-[calc(100vh-9rem)] self-start">
           <div
             role="tablist"
             className="flex shrink-0 gap-1 self-start rounded-full border border-white/10 bg-black/40 p-1"
@@ -779,7 +781,7 @@ export default function App() {
       )}
 
       {experience === "console" && (
-        <footer className="relative mx-auto w-full max-w-[1400px] shrink-0 px-4 pb-3 lg:px-8">
+        <footer className="relative mx-auto w-full max-w-[1400px] shrink-0 px-8 pb-3">
           <TracePanel hops={hops} title={t.trace} />
         </footer>
       )}

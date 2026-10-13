@@ -18,7 +18,7 @@ function ClubTag({ id, name, side }: { id: string; name: string; side: "home" | 
       >
         {badge}
       </span>
-      <span className="hidden text-sm font-semibold tracking-tight text-white min-[430px]:inline sm:text-base">
+      <span className="text-sm font-semibold tracking-tight text-white sm:text-base">
         {name}
       </span>
     </span>
@@ -71,7 +71,7 @@ export default function Header({
   const ended = !!replay && replay.index >= replay.total - 1;
   return (
     <header className="sticky top-0 z-20 flex justify-center px-4 pt-5">
-      <Glass className="flex w-full max-w-6xl flex-col items-center gap-3 px-4 py-3 xl:flex-row xl:justify-between xl:py-2.5 xl:pl-6">
+      <Glass className="flex w-full max-w-6xl flex-row items-center justify-between gap-3 px-4 py-2.5 pl-6">
         <div className="flex flex-wrap items-center justify-center gap-3">
           <span className="mi-chip flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold tracking-widest text-white">
             <i
@@ -138,8 +138,8 @@ export default function Header({
           >
             {(
               [
-                { id: "tv", icon: "📺", full: "TV Broadcast View", short: "TV" },
-                { id: "console", icon: "💻", full: "Interactive Console", short: "Console" },
+                { id: "tv", label: "📺 TV Broadcast View" },
+                { id: "console", label: "💻 Interactive Console" },
               ] as const
             ).map((x) => (
               <button
@@ -153,9 +153,7 @@ export default function Header({
                     : "text-white/55 hover:text-white"
                 }`}
               >
-                {x.icon}{" "}
-                <span className="hidden sm:inline">{x.full}</span>
-                <span className="sm:hidden">{x.short}</span>
+                {x.label}
               </button>
             ))}
           </div>
