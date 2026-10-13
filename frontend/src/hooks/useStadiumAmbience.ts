@@ -26,8 +26,22 @@ export function useStadiumAmbience({
   const mutedRef = useRef(muted);
   mutedRef.current = muted;
   // Browsers gate AudioContext behind a user gesture: nothing is created
-  // (and no warnings are emitted) until the first pointer/key interaction.
+  // (and no warnings are emitted) until the first pointer/key interaction,
+  // and sources only start once the context is actually running.
   const gesturedRef = useRef(false);
+  const sourcesRef = useRef<AudioScheduledSourceNode[]>([]);
+  const startedRef = useRef(false);
+
+  const startSources = useCallback(() => {
+    const ctx = ctxRef.current;
+    if (!ctx || startedRef.current || ctx.state !== "running") return;
+    try {
+      for (const src of sourcesRef.current) src.start();
+      startedRef.current = true;
+    } catch {
+      /* already started */
+    }
+  }, []);
 
   const ensure = useCallback((): boolean => {
     if (typeof window === "undefined" || !gesturedRef.current) return false;
@@ -84,9 +98,8 @@ export function useStadiumAmbience({
         roarSrc.connect(roarFilter);
         roarFilter.connect(roarGain);
         roarGain.connect(crowd);
-        murmurSrc.start();
-        roarSrc.start();
-        lfo.start();
+        sourcesRef.current = [murmurSrc, roarSrc, lfo];
+        startedRef.current = false;
         ctxRef.current = ctx;
         masterRef.current = master;
         crowdBusRef.current = crowd;
@@ -94,11 +107,12 @@ export function useStadiumAmbience({
         roarFilterRef.current = roarFilter;
       }
       if (ctxRef.current.state === "suspended") void ctxRef.current.resume();
+      startSources();
       return true;
     } catch {
       return false;
     }
-  }, []);
+  }, [startSources]);
 
   // Mute follows the Live Audio toggle.
   useEffect(() => {
@@ -129,8 +143,13 @@ export function useStadiumAmbience({
     const wake = () => {
       gesturedRef.current = true;
       const ctx = ctxRef.current;
-      if (ctx && ctx.state === "suspended") void ctx.resume();
-      else if (!ctx && !mutedRef.current) ensure();
+      if (ctx && ctx.state === "suspended") {
+        void ctx.resume().then(() => startSources()).catch(() => undefined);
+      } else if (!ctx && !mutedRef.current) {
+        ensure();
+      } else {
+        startSources();
+      }
     };
     window.addEventListener("pointerdown", wake);
     window.addEventListener("keydown", wake);

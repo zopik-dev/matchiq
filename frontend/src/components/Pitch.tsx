@@ -442,7 +442,7 @@ export default function Pitch({
               layer === id ? "mi-seg-active text-white" : "text-white/55 hover:text-white"
             }`}
           >
-            {icon} <span className="hidden min-[430px]:inline">{label}</span>
+            {icon} <span className="hidden sm:inline">{label}</span>
           </button>
         ))}
       </div>
@@ -462,7 +462,7 @@ export default function Pitch({
               : "border-white/10 bg-black/50 text-white/60 hover:text-white"
           }`}
         >
-          📏 <span className="hidden min-[430px]:inline">Measure</span>
+          📏 <span className="hidden sm:inline">Measure</span>
         </button>
         <button
           onClick={() => setShowLines((v) => !v)}
@@ -478,8 +478,8 @@ export default function Pitch({
             : undefined
         }
       >
-        <span className="hidden min-[430px]:inline">Tactical Lines</span>
-        <span className="min-[430px]:hidden">Lines</span>
+        <span className="hidden sm:inline">Tactical Lines</span>
+        <span className="sm:hidden">Lines</span>
       </button>
       </div>
       <svg
