@@ -714,7 +714,7 @@ export default function App() {
                     {feed.length}/{match.moments.length}
                   </span>
                 </div>
-                <div className="max-h-[28vh] overflow-y-auto pr-0.5">
+                <div className="pr-0.5">
                   {feed.length === 0 ? (
                     <p className="text-sm text-white/40">{t.noMoments}</p>
                   ) : (
