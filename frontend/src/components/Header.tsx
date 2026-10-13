@@ -60,11 +60,13 @@ export default function Header({
     restart: string;
     live: string;
     paused: string;
+    fulltime: string;
     connecting: string;
   };
 }) {
   const minute = replay?.minute ?? 0;
   const score = replay?.score ?? { home: 0, away: 0 };
+  const ended = !!replay && replay.index >= replay.total - 1;
   return (
     <header className="sticky top-0 z-20 flex justify-center px-4 pt-5">
       <Glass className="flex w-full max-w-6xl flex-col items-center gap-3 px-4 py-3 xl:flex-row xl:justify-between xl:py-2.5 xl:pl-6">
@@ -74,7 +76,7 @@ export default function Header({
               className="size-1.5 rounded-full bg-[#DC2626]"
               style={{ boxShadow: "0 0 6px 1px rgba(220,38,38,0.8)" }}
             />
-            {replay?.playing ? t.live : t.paused}
+            {ended ? t.fulltime : replay?.playing ? t.live : t.paused}
           </span>
           <div className="flex items-center gap-3">
             <ClubTag id={home.id} name={home.name} side="home" />
@@ -88,10 +90,15 @@ export default function Header({
           </div>
           <div className="flex items-center gap-1">
             <button
-              title={replay?.playing ? t.pause : t.play}
-              onClick={() =>
-                void (replay?.playing ? controls.pause() : controls.play()).then(onReplay)
-              }
+              title={ended ? t.restart : replay?.playing ? t.pause : t.play}
+              onClick={() => {
+                // Full time: the stream is over, so play restarts from kickoff.
+                if (ended) {
+                  onSeek(0);
+                  return;
+                }
+                void (replay?.playing ? controls.pause() : controls.play()).then(onReplay);
+              }}
               className="mi-chip rounded-full p-1.5 text-white transition hover:border-white/30"
             >
               {replay?.playing ? <Pause size={14} /> : <Play size={14} />}

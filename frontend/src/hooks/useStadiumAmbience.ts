@@ -25,9 +25,12 @@ export function useStadiumAmbience({
   const roarFilterRef = useRef<BiquadFilterNode | null>(null);
   const mutedRef = useRef(muted);
   mutedRef.current = muted;
+  // Browsers gate AudioContext behind a user gesture: nothing is created
+  // (and no warnings are emitted) until the first pointer/key interaction.
+  const gesturedRef = useRef(false);
 
   const ensure = useCallback((): boolean => {
-    if (typeof window === "undefined") return false;
+    if (typeof window === "undefined" || !gesturedRef.current) return false;
     try {
       if (!ctxRef.current) {
         const AC =
@@ -118,6 +121,24 @@ export function useStadiumAmbience({
     if (!ctx || !crowd) return;
     crowd.gain.setTargetAtTime(speaking ? 0.3 : 1, ctx.currentTime, 0.25);
   }, [speaking]);
+
+  // Browsers gate AudioContext behind a user gesture: wake it on the
+  // first interaction so murmur/roar actually sound after unmuting.
+  // (pointerdown fires before click, so unmuting via click starts audio.)
+  useEffect(() => {
+    const wake = () => {
+      gesturedRef.current = true;
+      const ctx = ctxRef.current;
+      if (ctx && ctx.state === "suspended") void ctx.resume();
+      else if (!ctx && !mutedRef.current) ensure();
+    };
+    window.addEventListener("pointerdown", wake);
+    window.addEventListener("keydown", wake);
+    return () => {
+      window.removeEventListener("pointerdown", wake);
+      window.removeEventListener("keydown", wake);
+    };
+  }, [ensure]);
 
   useEffect(
     () => () => {

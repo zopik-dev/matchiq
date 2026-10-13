@@ -91,6 +91,7 @@ export default function App() {
   // Experience with persistence; ESC always drops back to the console.
   const changeExperience = useCallback((next: "tv" | "console") => {
     setExperience(next);
+    setLower(null);
     try {
       localStorage.setItem("matchiq:experience", next);
     } catch {
@@ -203,7 +204,11 @@ export default function App() {
     on("trace", (d) =>
       setHops((prev) => [...prev, ...((d as { hops: Hop[] }).hops ?? [])]),
     );
-    on("done", () => source.close());
+    on("done", () => {
+      // Full time: freeze the header on FINAL, not eternal LIVE.
+      setReplay((prev) => (prev ? { ...prev, playing: false } : prev));
+      source.close();
+    });
     source.onerror = () => setConnected(false);
     return () => source.close();
   }, [streamKey]);
