@@ -15,7 +15,7 @@ const toY = (y: number) => (y / 100) * 68;
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
 /** Display units are metres (105 x 68 grid); the spec formula on 0-100 coords. */
-function gridDistanceM(ax: number, ay: number, bx: number, by: number): number {
+export function gridDistanceM(ax: number, ay: number, bx: number, by: number): number {
   return Math.hypot((bx - ax) * 1.05, (by - ay) * 0.68);
 }
 

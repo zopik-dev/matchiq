@@ -138,6 +138,7 @@ ruff format --check .
 ```powershell
 cd frontend
 npm run build
+npm test   # 38 frontend unit tests (vitest): api targets, hooks, components
 ```
 
 ## Match controls (frontend)
