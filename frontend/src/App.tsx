@@ -514,7 +514,7 @@ export default function App() {
         </section>
 
         {experience === "console" && (
-          <aside className="flex min-h-0 flex-col gap-3 overflow-y-auto pr-0.5 sticky top-28 max-h-[calc(100vh-9rem)] self-start">
+          <aside className="flex min-h-0 flex-col gap-3 overflow-y-auto pr-0.5 sticky top-28 max-h-[calc(100vh-9rem)]">
           <div
             role="tablist"
             className="flex shrink-0 gap-1 self-start rounded-full border border-white/10 bg-black/40 p-1"
