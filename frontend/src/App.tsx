@@ -58,7 +58,8 @@ export default function App() {
   const [copilotAsk, setCopilotAsk] = useState<{ q: string; n: number } | null>(null);
   const profileRef = useRef(profile);
   profileRef.current = profile;
-  const { isMuted, isSpeaking, speak, stop, toggleMute } = useCommentaryAudio();
+  const { isMuted, isSpeaking, audioSource, speak, stop, toggleMute } =
+    useCommentaryAudio();
   const audioOn = !isMuted;
   const ambience = useStadiumAmbience({ muted: isMuted, speaking: isSpeaking });
   const ambienceRef = useRef(ambience);
@@ -404,8 +405,9 @@ export default function App() {
           onSeek={(m) => void doSeek(m)}
           onReplay={setReplay}
           connected={connected}
-          audioOn={audioOn}
-          audioSpeaking={isSpeaking}
+        audioOn={audioOn}
+        audioSpeaking={isSpeaking}
+        audioSource={audioSource}
           onToggleAudio={toggleMute}
           experience={experience}
         onExperience={(next) => {
@@ -421,7 +423,7 @@ export default function App() {
       )}
 
       {experience === "tv" && (
-        <div className="relative z-20 mx-auto flex w-full max-w-[1600px] items-start justify-between px-4 pt-4 lg:px-8">
+        <div className="relative z-20 mx-auto flex w-full max-w-[1600px] flex-wrap items-start justify-between gap-2 px-4 pt-4 lg:px-8">
           <Scorebug home={home} away={away} replay={replay} liveLabel={t.live} />
           <div className="flex items-center gap-2">
             <button
@@ -444,7 +446,7 @@ export default function App() {
       <main
         className={
           experience === "tv"
-            ? "relative mx-auto min-h-0 w-full max-w-[1600px] flex-1 overflow-y-auto px-4 pb-24 pt-4 lg:px-8"
+            ? "relative mx-auto min-h-0 w-full max-w-[1600px] flex-1 overflow-y-auto px-4 pb-6 pt-4 lg:px-8"
             : "relative mx-auto grid w-full max-w-[1400px] min-h-0 flex-1 auto-rows-max gap-6 overflow-y-auto px-4 pb-4 pt-6 lg:auto-rows-auto lg:grid-cols-[minmax(0,1fr)_400px] lg:overflow-visible lg:px-8"
         }
       >

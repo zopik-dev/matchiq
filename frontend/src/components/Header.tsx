@@ -37,6 +37,7 @@ export default function Header({
   t,
   audioOn,
   audioSpeaking,
+  audioSource,
   onToggleAudio,
   experience,
   onExperience,
@@ -51,6 +52,7 @@ export default function Header({
   connected: boolean;
   audioOn: boolean;
   audioSpeaking: boolean;
+  audioSource: "azure" | "browser" | "idle";
   onToggleAudio: () => void;
   experience: "tv" | "console";
   onExperience: (next: "tv" | "console") => void;
@@ -91,6 +93,7 @@ export default function Header({
           <div className="flex items-center gap-1">
             <button
               title={ended ? t.restart : replay?.playing ? t.pause : t.play}
+              aria-label={ended ? t.restart : replay?.playing ? t.pause : t.play}
               onClick={() => {
                 // Full time: the stream is over, so play restarts from kickoff.
                 if (ended) {
@@ -118,6 +121,7 @@ export default function Header({
             ))}
             <button
               title={t.restart}
+              aria-label={t.restart}
               onClick={() => onSeek(0)}
               className="rounded-full p-1.5 text-white/55 transition hover:text-white"
             >
@@ -208,6 +212,11 @@ export default function Header({
             }`}
           >
             🎙️ Live Audio: {audioOn ? "ON" : "OFF"}
+            {audioSpeaking && audioSource !== "idle" && (
+              <span className="font-mono text-[10px] uppercase tracking-widest text-white/50">
+                · {audioSource === "azure" ? "Azure" : "Browser"}
+              </span>
+            )}
             {audioSpeaking && (
               <span className="flex items-end gap-[2px]" aria-hidden>
                 {[0, 1, 2].map((i) => (
