@@ -100,7 +100,11 @@ export default function Header({
                   onSeek(0);
                   return;
                 }
-                void (replay?.playing ? controls.pause() : controls.play()).then(onReplay);
+                // Backend may be down: swallow the rejection, the SSE retry
+                // loop brings the session back and the user retries the tap.
+                void (replay?.playing ? controls.pause() : controls.play())
+                  .then(onReplay)
+                  .catch(() => undefined);
               }}
               className="mi-chip rounded-full p-1.5 text-white transition hover:border-white/30"
             >
@@ -109,7 +113,12 @@ export default function Header({
             {SPEEDS.map((s) => (
               <button
                 key={s}
-                onClick={() => void controls.speed(s).then(onReplay)}
+                onClick={() =>
+                  void controls
+                    .speed(s)
+                    .then(onReplay)
+                    .catch(() => undefined)
+                }
                 className={`rounded-full px-2.5 py-1 font-mono text-[11px] tabular-nums transition ${
                   replay?.speed === s
                     ? "mi-seg-active font-bold text-white"
