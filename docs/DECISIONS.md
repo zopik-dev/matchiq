@@ -2,6 +2,10 @@
 
 Log of non-obvious decisions (newest first).
 
+- (Resilience) SSE auto-reconnects 3 s after a backend drop (cleared on the
+  next healthy state); natural full-time sets a flag so finished matches stay
+  finished instead of reconnect-looping. Shared speech service per credentials
+  so the MP3 cache survives across requests.
 - (Perf) Backdrop is static paint: the animated full-viewport drift layer,
   blend modes and will-change are gone (weak GPUs fell back to black
   compositor tiles and the drift never visibly moved there); blur radii cut

@@ -72,6 +72,11 @@ export default function PressureTimeline({
     return resolvePlayer(typeof raw === "string" ? raw : null)?.name.split(" ").slice(-1)[0] ?? "";
   })();
 
+  const hoverFromClientX = (clientX: number, el: SVGSVGElement) => {
+    const r = el.getBoundingClientRect();
+    setHover(Math.round(Math.max(0, Math.min(1, (clientX - r.left) / r.width)) * 90));
+  };
+
   return (
     <div className="relative">
       <div className="mb-3 flex items-center justify-between text-xs">
@@ -90,11 +95,13 @@ export default function PressureTimeline({
       <svg
         viewBox={`0 0 ${W} ${H}`}
         className="w-full cursor-crosshair"
-        onMouseMove={(e) => {
-          const r = e.currentTarget.getBoundingClientRect();
-          setHover(Math.round(Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * 90));
-        }}
+        onMouseMove={(e) => hoverFromClientX(e.clientX, e.currentTarget)}
         onMouseLeave={() => setHover(null)}
+        onTouchMove={(e) => {
+          const t = e.touches[0];
+          if (t) hoverFromClientX(t.clientX, e.currentTarget);
+        }}
+        onTouchEnd={() => setHover(null)}
       >
         <defs>
           <linearGradient id="up" x1="0" y1="0" x2="0" y2="1">

@@ -16,6 +16,13 @@ def test_health():
     assert client.get("/health").json() == {"status": "ok"}
 
 
+def test_index_points_to_dashboard():
+    payload = client.get("/").json()
+    assert payload["service"] == "MatchIQ API"
+    assert payload["dashboard"] == "http://localhost:5173"
+    assert "GET /api/match" in payload["endpoints"]
+
+
 def test_match_payload_shape():
     payload = client.get("/api/match").json()
     assert payload["meta"]["match_id"] == "match_42_demo"

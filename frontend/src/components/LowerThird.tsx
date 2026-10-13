@@ -48,7 +48,7 @@ export default function LowerThird({
       key={detail.moment_id}
       initial={{ y: 90, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      exit={{ y: 40, opacity: 0 }}
+      exit={{ y: 0, opacity: 0 }}
       transition={{ type: "spring", stiffness: 210, damping: 26 }}
       className="pointer-events-none w-[min(92vw,760px)] overflow-hidden rounded-2xl border border-white/20 bg-black/75"
       style={{
@@ -58,7 +58,7 @@ export default function LowerThird({
       }}
     >
       <div className="h-1 w-full bg-gradient-to-r from-[#3B82F6] via-white to-[#DC2626]" />
-      <div className="px-6 py-4">
+      <div className="px-5 py-3.5 sm:px-6 sm:py-4">
         <div className="mb-1.5 flex items-center gap-2">
           <span className="rounded bg-white px-2 py-0.5 font-mono text-[11px] font-bold tracking-widest text-black">
             {BADGE[detail.moment_type]} · {detail.minute}&prime;
@@ -73,7 +73,7 @@ export default function LowerThird({
             LIVE
           </span>
         </div>
-        <h2 className="text-2xl font-bold leading-tight tracking-tight text-white">
+        <h2 className="text-xl font-bold leading-tight tracking-tight text-white sm:text-2xl">
           {detail.line ?? detail.story}
         </h2>
         {pills.length > 0 && (

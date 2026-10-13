@@ -76,6 +76,7 @@ export default function App() {
   experienceRef.current = experience;
   const lowerTimer = useRef<number | null>(null);
   const tvCutoff = useRef(-1);
+  const retryTimer = useRef<number | null>(null);
   const showLower = useCallback((detail: MomentDetail) => {
     setLower(detail);
     if (lowerTimer.current) window.clearTimeout(lowerTimer.current);
@@ -133,6 +134,17 @@ export default function App() {
     // Playhead cutoff at (re)connect: moments at or before it are catch-up
     // history (never auto-announced); anything after it is genuinely live.
     tvCutoff.current = -1;
+    let alive = true;
+    const scheduleRetry = () => {
+      // Backend dropped: retry the stream, forever if needed, until either
+      // the backend answers or this effect is cleaned up. Natural full-time
+      // (done) sets alive=false so finished matches stay finished.
+      if (!alive) return;
+      if (retryTimer.current) window.clearTimeout(retryTimer.current);
+      retryTimer.current = window.setTimeout(() => {
+        if (alive) setStreamKey((k) => k + 1);
+      }, 3000);
+    };
     const on = (kind: string, fn: (data: unknown) => void) => {
       source.addEventListener(kind, (e) => {
         fn(JSON.parse((e as MessageEvent).data));
@@ -142,6 +154,10 @@ export default function App() {
       const st = d as ReplayState;
       setReplay(st);
       setConnected(true);
+      if (retryTimer.current) {
+        window.clearTimeout(retryTimer.current);
+        retryTimer.current = null;
+      }
       if (tvCutoff.current < 0) tvCutoff.current = st.minute * 60;
     });
     on("event", (d) => {
@@ -208,10 +224,21 @@ export default function App() {
     on("done", () => {
       // Full time: freeze the header on FINAL, not eternal LIVE.
       setReplay((prev) => (prev ? { ...prev, playing: false } : prev));
+      alive = false;
       source.close();
     });
-    source.onerror = () => setConnected(false);
-    return () => source.close();
+    source.onerror = () => {
+      setConnected(false);
+      scheduleRetry();
+    };
+    return () => {
+      alive = false;
+      if (retryTimer.current) {
+        window.clearTimeout(retryTimer.current);
+        retryTimer.current = null;
+      }
+      source.close();
+    };
   }, [streamKey]);
 
   const reconnect = useCallback(() => setStreamKey((k) => k + 1), []);
