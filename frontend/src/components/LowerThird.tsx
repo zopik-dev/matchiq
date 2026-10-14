@@ -1,25 +1,36 @@
 import { motion } from "framer-motion";
+import { STR, type Lang } from "../strings";
 import type { MomentDetail } from "../types";
 
-const BADGE: Record<MomentDetail["moment_type"], string> = {
-  goal: "⚽ GOAL ANALYSIS",
-  big_chance: "BIG CHANCE",
-  pressure_spike: "PRESSURE SPIKE",
-  momentum_swing: "MOMENTUM SWING",
-  tactical_shift: "🔄 TACTICAL SHIFT",
-};
+function badgeFor(type: MomentDetail["moment_type"], lang: Lang): string {
+  const t = STR[lang];
+  switch (type) {
+    case "goal":
+      return t.badgeGoal;
+    case "big_chance":
+      return t.badgeChance;
+    case "pressure_spike":
+      return t.badgePress;
+    case "momentum_swing":
+      return t.badgeSwing;
+    case "tactical_shift":
+      return t.badgeShift;
+  }
+}
 
 /** Engine-computed metric pills for the broadcast lower-third. */
 function metricPills(
   detail: MomentDetail,
   lookup: (id: string | null) => { name: string } | null,
+  lang: Lang,
 ): string[] {
+  const t = STR[lang];
   const out: string[] = [];
   const ev = detail.evidence;
   if (typeof ev["xg"] === "number") out.push(`xG ${(ev["xg"] as number).toFixed(2)}`);
-  if (typeof ev["score"] === "string") out.push(`Score ${ev["score"] as string}`);
+  if (typeof ev["score"] === "string") out.push(`${t.pillScore} ${ev["score"] as string}`);
   if (typeof ev["pressure_events"] === "number")
-    out.push(`${ev["pressure_events"] as number} duels/5min`);
+    out.push(t.pillDuels(ev["pressure_events"] as number));
   const off =
     typeof ev["player_off"] === "string"
       ? (lookup(ev["player_off"])?.name.split(" ").slice(-1)[0] ?? null)
@@ -28,7 +39,7 @@ function metricPills(
     typeof ev["player_on"] === "string"
       ? (lookup(ev["player_on"])?.name.split(" ").slice(-1)[0] ?? null)
       : null;
-  if (off && on) out.push(`Sub ${off} → ${on}`);
+  if (off && on) out.push(t.pillSub(off, on));
   return out;
 }
 
@@ -37,12 +48,14 @@ export default function LowerThird({
   detail,
   teamName,
   lookup,
+  lang,
 }: {
   detail: MomentDetail;
   teamName: string | null;
   lookup: (id: string | null) => { name: string } | null;
+  lang: Lang;
 }) {
-  const pills = metricPills(detail, lookup);
+  const pills = metricPills(detail, lookup, lang);
   return (
     <motion.div
       key={detail.moment_id}
@@ -61,7 +74,7 @@ export default function LowerThird({
       <div className="px-5 py-3.5 sm:px-6 sm:py-4">
         <div className="mb-1.5 flex items-center gap-2">
           <span className="rounded bg-white px-2 py-0.5 font-mono text-[11px] font-bold tracking-widest text-black">
-            {BADGE[detail.moment_type]} · {detail.minute}&prime;
+            {badgeFor(detail.moment_type, lang)} · {detail.minute}&prime;
           </span>
           {teamName && (
             <span className="text-xs font-semibold uppercase tracking-[0.14em] text-white/60">

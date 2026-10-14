@@ -486,7 +486,7 @@ export default function App() {
               onClick={() => changeExperience("console")}
               className="mi-chip rounded-full px-3 py-1.5 text-xs font-semibold text-white/70 transition hover:text-white"
             >
-              💻 Interactive Console · ESC
+              {t.tvBack}
             </button>
           </div>
         </div>
@@ -539,6 +539,7 @@ export default function App() {
                   setSideTab("copilot");
                 }}
                 xray={xrayOverlay}
+                lang={profile.lang}
               />
             </div>
           </Glass>
@@ -823,6 +824,7 @@ export default function App() {
                 detail={lower}
                 teamName={lower.team_id ? (names[lower.team_id] ?? null) : null}
                 lookup={lookup}
+                lang={profile.lang}
               />
             )}
           </AnimatePresence>

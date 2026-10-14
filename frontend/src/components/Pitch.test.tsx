@@ -21,6 +21,7 @@ function renderPitch() {
       onPlayerClick={noop}
       onClearFocus={noop}
       xray={null}
+      lang="en"
     />,
   );
 }
@@ -53,6 +54,7 @@ describe("Pitch", () => {
         onPlayerClick={onPlayerClick}
         onClearFocus={noop}
         xray={null}
+        lang="en"
       />,
     );
     const first = document.querySelector("svg [data-token]") as SVGGElement;

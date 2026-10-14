@@ -64,6 +64,8 @@ export default function Header({
     paused: string;
     fulltime: string;
     connecting: string;
+    expTv: string;
+    expConsole: string;
   };
 }) {
   const minute = replay?.minute ?? 0;
@@ -147,8 +149,8 @@ export default function Header({
           >
             {(
               [
-                { id: "tv", label: "📺 TV Broadcast View" },
-                { id: "console", label: "💻 Interactive Console" },
+                { id: "tv", label: t.expTv },
+                { id: "console", label: t.expConsole },
               ] as const
             ).map((x) => (
               <button

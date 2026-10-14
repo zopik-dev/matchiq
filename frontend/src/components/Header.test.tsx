@@ -15,6 +15,8 @@ const t = {
   paused: "PAUSED",
   fulltime: "FULL TIME",
   connecting: "Connecting…",
+  expTv: "📺 TV Broadcast View",
+  expConsole: "💻 Interactive Console",
 };
 
 function replay(over: Partial<ReplayState> = {}): ReplayState {

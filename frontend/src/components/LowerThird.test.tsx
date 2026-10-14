@@ -19,6 +19,7 @@ describe("LowerThird", () => {
         })}
         teamName="Northgate United"
         lookup={lookup}
+        lang="en"
       />,
     );
     expect(screen.getByText(/GOAL ANALYSIS · 89/)).toBeInTheDocument();
@@ -39,9 +40,10 @@ describe("LowerThird", () => {
         })}
         teamName={null}
         lookup={lookup}
+        lang="uk"
       />,
     );
-    expect(screen.getByText(/TACTICAL SHIFT/)).toBeInTheDocument();
-    expect(screen.getByText("Sub NGU_8 → NGU_14")).toBeInTheDocument();
+    expect(screen.getByText(/ТАКТИЧНА ЗАМІНА/)).toBeInTheDocument();
+    expect(screen.getByText("Заміна NGU_8 → NGU_14")).toBeInTheDocument();
   });
 });

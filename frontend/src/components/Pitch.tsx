@@ -1,6 +1,7 @@
 import gsap from "gsap";
 import { MotionPathPlugin } from "gsap/MotionPathPlugin";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { STR, type Lang } from "../strings";
 import type { MomentDetail, PitchEvent, Player, Team } from "../types";
 
 gsap.registerPlugin(MotionPathPlugin);
@@ -100,6 +101,7 @@ export default function Pitch({
   onClearFocus,
   xray,
   onRupture,
+  lang,
 }: {
   home: Team;
   away: Team;
@@ -112,6 +114,7 @@ export default function Pitch({
   onClearFocus: () => void;
   xray: XrayOverlay | null;
   onRupture?: (question: string) => void;
+  lang: Lang;
 }) {
   const [showLines, setShowLines] = useState(true);
   const [layer, setLayer] = useState<PitchLayer>("tokens");
@@ -397,19 +400,24 @@ export default function Pitch({
     const bothDf = a.d.line === "DF" && b.d.line === "DF" && a.d.side === b.d.side;
     const underPressure = a.d.side === "home" ? ball.x < 35 : ball.x > 70;
     const rupture = bothDf && dist > 22 && underPressure;
+    const str = STR[lang];
     const label = rupture
-      ? `⚠️ DEFENSIVE LINE RUPTURE (${dist.toFixed(1)}m)`
-      : `${dist.toFixed(1)}m · ${bothDf ? "Defensive Gap" : "Pundit Gap"}`;
+      ? `${str.rupture} (${dist.toFixed(1)}m)`
+      : `${dist.toFixed(1)}m · ${bothDf ? str.gapDefensive : str.gapPundit}`;
     return { a, b, dist, rupture, label, mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 };
-  }, [measureIds, tokens, ball.x, ball.y]);
+  }, [measureIds, tokens, ball.x, ball.y, lang]);
 
   const askRupture = () => {
     if (!measurePair?.rupture || !onRupture) return;
     const surname = (id: string) => lookup(id)?.name.split(" ").slice(-1)[0] ?? "defender";
     const minute = last?.minute ?? 0;
     onRupture(
-      `How did the ${measurePair.dist.toFixed(1)}m gap between ${surname(measureIds[0])} ` +
-        `and ${surname(measureIds[1])} affect the ${minute}' attack?`,
+      STR[lang].ruptureQ(
+        measurePair.dist.toFixed(1),
+        surname(measureIds[0]),
+        surname(measureIds[1]),
+        minute,
+      ),
     );
   };
 
@@ -428,9 +436,9 @@ export default function Pitch({
       <div className="absolute left-2 top-2 z-10 flex gap-1 rounded-full border border-white/10 bg-black/50 p-1">
         {(
           [
-            ["tokens", "👥 Tokens"],
-            ["control", "🌐 Pitch Control"],
-            ["heat", "🔥 Heatmap"],
+            ["tokens", STR[lang].layerTokens],
+            ["control", STR[lang].layerControl],
+            ["heat", STR[lang].layerHeat],
           ] as const
         ).map(([id, label]) => (
           <button
@@ -454,18 +462,18 @@ export default function Pitch({
             });
           }}
           aria-pressed={measuring}
-          title="Measure / Pundit Tool"
+          title={STR[lang].measureTitle}
           className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold transition ${
             measuring
               ? "mi-seg-active text-white"
               : "border-white/10 bg-black/50 text-white/60 hover:text-white"
           }`}
         >
-          📏 Measure
+          📏 {STR[lang].measure}
         </button>
         <button
           onClick={() => setShowLines((v) => !v)}
-          title="Tactical Lines"
+          title={STR[lang].tacticalLines}
           className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold transition ${
             showLines
               ? "border-white/25 bg-white/[0.14] text-white"
@@ -477,7 +485,7 @@ export default function Pitch({
             : undefined
         }
       >
-        Tactical Lines
+        {STR[lang].tacticalLines}
       </button>
       </div>
       <svg
