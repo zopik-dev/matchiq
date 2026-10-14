@@ -1,17 +1,17 @@
 # Hackathon submission checklist
 
 ## Originality & branding
-- [ ] Every club, player, stadium and badge is invented (Northgate United,
+- [x] Every club, player, stadium and badge is invented (Northgate United,
       Eastvale Rovers, Meridian Park). No real Premier League club/player names.
-- [ ] No Premier League logos, trademarks or branding in code, data, UI or video.
-- [ ] Grep the repo for real club names before submitting:
+- [x] No Premier League logos, trademarks or branding in code, data, UI or video.
+- [x] Grep the repo for real club names before submitting:
       `rg -i "arsenal|chelsea|liverpool|city|united|tottenham|newcastle|villa|west ham|everton|leeds" --glob '!package-lock.json'`
       (only our invented "Northgate United" / "Eastvale Rovers" may match "united"/"rovers").
 
 ## Secrets & repo hygiene
-- [ ] No API keys, connection strings or credentials in code, configs or history.
-- [ ] `.env` is git-ignored; only `.env.example` (placeholders) is committed.
-- [ ] `MIT LICENSE` present; `README.md` links it.
+- [x] No API keys, connection strings or credentials in code, configs or history.
+- [x] `.env` is git-ignored; only `.env.example` (placeholders) is committed.
+- [x] `MIT LICENSE` present; `README.md` links it.
 
 ## Working submission
 - [x] `pytest -q` passes in `backend/` (116 tests).
