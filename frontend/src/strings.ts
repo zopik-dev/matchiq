@@ -72,6 +72,9 @@ export const STR = {
     pillScore: "Score",
     pillDuels: (n: number) => `${n} duels/5min`,
     pillSub: (off: string, on: string) => `Sub ${off} → ${on}`,
+    overload: "OVERLOAD",
+    shotBadge: "SHOT xG",
+    attackArrow: (name: string) => `${name} ATTACK →`,
   },
   uk: {
     storyline: "Стрічка сюжету MatchIQ AI",
@@ -146,6 +149,9 @@ export const STR = {
     pillScore: "Рахунок",
     pillDuels: (n: number) => `${n} єдиноборств/5хв`,
     pillSub: (off: string, on: string) => `Заміна ${off} → ${on}`,
+    overload: "ПЕРЕВАГА",
+    shotBadge: "xG УДАРУ",
+    attackArrow: (name: string) => `${name} АТАКА →`,
   },
 } as const;
 

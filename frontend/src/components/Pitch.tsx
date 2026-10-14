@@ -588,9 +588,9 @@ export default function Pitch({
             />
             <g transform={`translate(${(overload.x0 + overload.x1) / 2} ${Math.max(3.5, overload.y0 - 1.5)})`}>
               <rect
-                x={-(`${overload.a}v${overload.d} OVERLOAD`.length * 1.25 + 3) / 2}
+                x={-(`${overload.a}v${overload.d} ${STR[lang].overload}`.length * 1.25 + 3) / 2}
                 y="-2.6"
-                width={`${overload.a}v${overload.d} OVERLOAD`.length * 1.25 + 3}
+                width={`${overload.a}v${overload.d} ${STR[lang].overload}`.length * 1.25 + 3}
                 height="3.6"
                 rx="1.8"
                 fill="#090D16"
@@ -600,7 +600,7 @@ export default function Pitch({
                 strokeWidth="0.25"
               />
               <text y="0" textAnchor="middle" fontSize="2.1" fontWeight="700" fill="#fff">
-                {overload.a}v{overload.d} OVERLOAD
+                {overload.a}v{overload.d} {STR[lang].overload}
               </text>
             </g>
           </g>
@@ -854,11 +854,11 @@ export default function Pitch({
         {shotXg !== null && (
           <g>
             <rect x="80" y="55" width="22" height="8" rx="2" fill="#090D16" fillOpacity="0.85" stroke="#fff" strokeOpacity="0.2" strokeWidth="0.2" />
-            <text x="82" y="58.6" fontSize="2.1" fill="#94A3B8">SHOT xG</text>
+            <text x="82" y="58.6" fontSize="2.1" fill="#94A3B8">{STR[lang].shotBadge}</text>
             <text x="82" y="61.8" fontSize="3" fontWeight="700" fill="#fff">{shotXg.toFixed(2)}</text>
           </g>
         )}
-        <text x="6" y="64" fontSize="2" fill="#fff" fillOpacity="0.5">{attackLabel} ATTACK →</text>
+        <text x="6" y="64" fontSize="2" fill="#fff" fillOpacity="0.5">{STR[lang].attackArrow(attackLabel)}</text>
       </svg>
     </div>
   );
