@@ -40,6 +40,8 @@ Write-Output "==> backend app (scale to zero)"
 $Secrets = @("cosmos-key=$CosmosKey")
 $BackendEnv = @("MATCHIQ_ENV=azure")
 if ($env:MATCHIQ_AZURE_API_KEY) { $Secrets += "azure-key=$env:MATCHIQ_AZURE_API_KEY" }
+if ($env:MATCHIQ_AZURE_FOUNDRY_API_KEY) { $Secrets += "foundry-key=$env:MATCHIQ_AZURE_FOUNDRY_API_KEY" }
+if ($env:MATCHIQ_AZURE_SPEECH_KEY) { $Secrets += "speech-key=$env:MATCHIQ_AZURE_SPEECH_KEY" }
 az containerapp create -g $ResourceGroup -n matchiq-backend --environment matchiq-env `
   --image "$RegUrl/matchiq-backend:$Tag" --registry-server $RegUrl `
   --target-port 8000 --ingress external `
@@ -49,6 +51,11 @@ $UpdateEnv = @("MATCHIQ_COSMOS_ENDPOINT=$CosmosEndpoint", "MATCHIQ_COSMOS_KEY=se
 if ($env:MATCHIQ_AZURE_ENDPOINT) { $UpdateEnv += "MATCHIQ_AZURE_ENDPOINT=$env:MATCHIQ_AZURE_ENDPOINT" }
 if ($env:MATCHIQ_AZURE_DEPLOYMENT) { $UpdateEnv += "MATCHIQ_AZURE_DEPLOYMENT=$env:MATCHIQ_AZURE_DEPLOYMENT" }
 if ($env:MATCHIQ_AZURE_API_KEY) { $UpdateEnv += "MATCHIQ_AZURE_API_KEY=secretref:azure-key" }
+if ($env:MATCHIQ_AZURE_FOUNDRY_ENDPOINT) { $UpdateEnv += "MATCHIQ_AZURE_FOUNDRY_ENDPOINT=$env:MATCHIQ_AZURE_FOUNDRY_ENDPOINT" }
+if ($env:MATCHIQ_AZURE_FOUNDRY_DEPLOYMENT) { $UpdateEnv += "MATCHIQ_AZURE_FOUNDRY_DEPLOYMENT=$env:MATCHIQ_AZURE_FOUNDRY_DEPLOYMENT" }
+if ($env:MATCHIQ_AZURE_FOUNDRY_API_KEY) { $UpdateEnv += "MATCHIQ_AZURE_FOUNDRY_API_KEY=secretref:foundry-key" }
+if ($env:MATCHIQ_AZURE_SPEECH_KEY) { $UpdateEnv += "MATCHIQ_AZURE_SPEECH_KEY=secretref:speech-key" }
+if ($env:MATCHIQ_AZURE_SPEECH_REGION) { $UpdateEnv += "MATCHIQ_AZURE_SPEECH_REGION=$env:MATCHIQ_AZURE_SPEECH_REGION" }
 az containerapp update -g $ResourceGroup -n matchiq-backend --set-env-vars $UpdateEnv -o none
 $BackendFqdn = az containerapp show -g $ResourceGroup -n matchiq-backend `
   --query properties.configuration.ingress.fqdn -o tsv

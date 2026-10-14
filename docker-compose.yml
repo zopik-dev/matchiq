@@ -7,11 +7,23 @@ services:
       dockerfile: infra/backend.Dockerfile
     ports:
       - "8000:8000"
-    env_file:
-      - .env
     environment:
       MATCHIQ_ENV: docker
       MATCHIQ_CORS_ORIGINS: http://localhost:5173
+      # Optional Azure credentials pass through from YOUR shell when set;
+      # compose warns and substitutes empty values otherwise, so the demo
+      # still boots (the app falls back to offline MockLLM / memory store).
+      # Copy .env.example to .env OR export these before `compose up`.
+      MATCHIQ_AZURE_API_KEY:
+      MATCHIQ_AZURE_ENDPOINT:
+      MATCHIQ_AZURE_DEPLOYMENT:
+      MATCHIQ_AZURE_FOUNDRY_API_KEY:
+      MATCHIQ_AZURE_FOUNDRY_ENDPOINT:
+      MATCHIQ_AZURE_FOUNDRY_DEPLOYMENT:
+      MATCHIQ_AZURE_SPEECH_KEY:
+      MATCHIQ_AZURE_SPEECH_REGION:
+      MATCHIQ_COSMOS_ENDPOINT:
+      MATCHIQ_COSMOS_KEY:
     volumes:
       # Live samples without rebuilding (read-only).
       - ./data/samples:/srv/data/samples:ro

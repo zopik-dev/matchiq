@@ -99,8 +99,9 @@ docker compose up --build
 ```
 
 Frontend on http://localhost:5173 (proxies `/api` to the backend),
-backend API on http://localhost:8000. Copy `.env.example` to `.env` first
-if you want to inject Azure credentials.
+backend API on http://localhost:8000. No `.env` needed: the demo boots
+fully offline (MockLLM + in-memory store); export any `MATCHIQ_AZURE_*` /
+`MATCHIQ_COSMOS_*` vars in your shell first and compose passes them through.
 
 ## Quickstart — Azure (scale-to-zero)
 

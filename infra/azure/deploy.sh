@@ -3,6 +3,8 @@
 # Prerequisites: Azure CLI logged in (`az login`), Docker daemon running.
 # Secrets come from YOUR environment, never from the repo:
 #   MATCHIQ_AZURE_API_KEY, MATCHIQ_COSMOS_KEY (or leave Cosmos to be created here)
+# Optional extras (same pattern): MATCHIQ_AZURE_FOUNDRY_* (chat models),
+#   MATCHIQ_AZURE_SPEECH_KEY/_REGION (broadcast voice).
 # Usage: ./infra/azure/deploy.sh [resource-group] [location] [registry]
 set -euo pipefail
 
@@ -43,6 +45,8 @@ az containerapp create -g "$RG" -n matchiq-backend --environment "$ENV_NAME" \
   --min-replicas 0 --max-replicas 2 --cpu 0.5 --memory 1Gi \
   --env-vars MATCHIQ_ENV=azure \
   --secrets cosmos-key="$COSMOS_KEY" ${MATCHIQ_AZURE_API_KEY:+azure-key="$MATCHIQ_AZURE_API_KEY"} \
+    ${MATCHIQ_AZURE_FOUNDRY_API_KEY:+foundry-key="$MATCHIQ_AZURE_FOUNDRY_API_KEY"} \
+    ${MATCHIQ_AZURE_SPEECH_KEY:+speech-key="$MATCHIQ_AZURE_SPEECH_KEY"} \
   -o none
 az containerapp update -g "$RG" -n matchiq-backend \
   --set-env-vars "MATCHIQ_COSMOS_ENDPOINT=$COSMOS_ENDPOINT" \
@@ -50,6 +54,11 @@ az containerapp update -g "$RG" -n matchiq-backend \
     ${MATCHIQ_AZURE_ENDPOINT:+MATCHIQ_AZURE_ENDPOINT="$MATCHIQ_AZURE_ENDPOINT"} \
     ${MATCHIQ_AZURE_DEPLOYMENT:+MATCHIQ_AZURE_DEPLOYMENT="$MATCHIQ_AZURE_DEPLOYMENT"} \
     ${MATCHIQ_AZURE_API_KEY:+MATCHIQ_AZURE_API_KEY=secretref:azure-key} \
+    ${MATCHIQ_AZURE_FOUNDRY_ENDPOINT:+MATCHIQ_AZURE_FOUNDRY_ENDPOINT="$MATCHIQ_AZURE_FOUNDRY_ENDPOINT"} \
+    ${MATCHIQ_AZURE_FOUNDRY_DEPLOYMENT:+MATCHIQ_AZURE_FOUNDRY_DEPLOYMENT="$MATCHIQ_AZURE_FOUNDRY_DEPLOYMENT"} \
+    ${MATCHIQ_AZURE_FOUNDRY_API_KEY:+MATCHIQ_AZURE_FOUNDRY_API_KEY=secretref:foundry-key} \
+    ${MATCHIQ_AZURE_SPEECH_KEY:+MATCHIQ_AZURE_SPEECH_KEY=secretref:speech-key} \
+    ${MATCHIQ_AZURE_SPEECH_REGION:+MATCHIQ_AZURE_SPEECH_REGION="$MATCHIQ_AZURE_SPEECH_REGION"} \
   -o none
 BACKEND_FQDN=$(az containerapp show -g "$RG" -n matchiq-backend \
   --query properties.configuration.ingress.fqdn -o tsv)
