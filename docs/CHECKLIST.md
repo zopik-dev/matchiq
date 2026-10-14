@@ -14,9 +14,10 @@
 - [ ] `MIT LICENSE` present; `README.md` links it.
 
 ## Working submission
-- [ ] `pytest -q` passes in `backend/` (currently 74 tests).
-- [ ] `ruff check .` and `ruff format --check .` clean in `backend/`.
-- [ ] `npm run build` succeeds in `frontend/` (tsc + vite).
+- [x] `pytest -q` passes in `backend/` (116 tests).
+- [x] `npm test` passes in `frontend/` (41 vitest tests).
+- [x] `ruff check .` and `ruff format --check .` clean in `backend/`.
+- [x] `npm run build` succeeds in `frontend/` (tsc + vite).
 - [ ] `docker compose up --build` serves frontend :5173 + backend :8000
       (verify on a machine with Docker; CI laptop here has none — see DECISIONS).
 - [ ] Public repo URL works for judges until the end of judging; Azure
