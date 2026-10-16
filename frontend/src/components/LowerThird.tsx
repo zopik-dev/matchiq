@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Flame, Repeat, TrendingUp, Trophy, Zap } from "lucide-react";
 import { STR, type Lang } from "../strings";
 import type { MomentDetail } from "../types";
 
@@ -15,6 +16,22 @@ function badgeFor(type: MomentDetail["moment_type"], lang: Lang): string {
       return t.badgeSwing;
     case "tactical_shift":
       return t.badgeShift;
+  }
+}
+
+function BadgeIcon({ type }: { type: MomentDetail["moment_type"] }) {
+  const cls = "text-black";
+  switch (type) {
+    case "goal":
+      return <Trophy size={12} className={cls} aria-hidden />;
+    case "big_chance":
+      return <Zap size={12} className={cls} aria-hidden />;
+    case "pressure_spike":
+      return <Flame size={12} className={cls} aria-hidden />;
+    case "momentum_swing":
+      return <TrendingUp size={12} className={cls} aria-hidden />;
+    case "tactical_shift":
+      return <Repeat size={12} className={cls} aria-hidden />;
   }
 }
 
@@ -73,7 +90,8 @@ export default function LowerThird({
       <div className="h-1 w-full bg-gradient-to-r from-[#3B82F6] via-white to-[#DC2626]" />
       <div className="px-5 py-3.5 sm:px-6 sm:py-4">
         <div className="mb-1.5 flex items-center gap-2">
-          <span className="rounded bg-white px-2 py-0.5 font-mono text-[11px] font-bold tracking-widest text-black">
+          <span className="flex items-center gap-1.5 rounded bg-white px-2 py-0.5 font-mono text-[11px] font-bold tracking-widest text-black">
+            <BadgeIcon type={detail.moment_type} />
             {badgeFor(detail.moment_type, lang)} · {detail.minute}&prime;
           </span>
           {teamName && (

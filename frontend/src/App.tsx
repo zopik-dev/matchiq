@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { Flag } from "lucide-react";
+import { ChevronLeft, ChevronRight, Flag, Mic, Sparkles, User, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { controls, fetchMatch, streamUrl } from "./api";
 import { useCommentaryAudio } from "./hooks/useCommentaryAudio";
@@ -591,12 +591,20 @@ export default function App() {
                     transition={{ type: "spring", stiffness: 400, damping: 32 }}
                   />
                 )}
-                <span className="relative z-10">
-                  {tab === "insight"
-                    ? `🎙️ ${t.tabInsight}`
-                    : tab === "player"
-                      ? `👤 ${t.tabPlayer}`
-                      : `💡 ${t.copilotTitle}`}
+                <span className="relative z-10 flex items-center gap-1.5">
+                  {tab === "insight" ? (
+                    <>
+                      <Mic size={13} className="text-[#94A3B8]" aria-hidden /> {t.tabInsight}
+                    </>
+                  ) : tab === "player" ? (
+                    <>
+                      <User size={13} className="text-[#94A3B8]" aria-hidden /> {t.tabPlayer}
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles size={13} className="text-[#94A3B8]" aria-hidden /> {t.copilotTitle}
+                    </>
+                  )}
                 </span>
               </button>
             ))}
@@ -630,7 +638,9 @@ export default function App() {
                           onClick={closeXray}
                           className="mi-chip rounded-full px-2.5 py-1 text-[11px] text-white/70 transition hover:text-white"
                         >
-                          {t.xrayExit} ✕
+                          <span className="flex items-center gap-1">
+                            {t.xrayExit} <X size={12} aria-hidden />
+                          </span>
                         </button>
                       </div>
                       <p className="mb-3 text-sm font-semibold leading-snug">{xray.title}</p>
@@ -641,7 +651,7 @@ export default function App() {
                           disabled={xrayIndex <= 0}
                           className="mi-chip grid size-8 shrink-0 place-items-center rounded-full text-white transition hover:border-white/30 disabled:opacity-30"
                         >
-                          ◀
+                          <ChevronLeft size={14} aria-hidden />
                         </button>
                         <div className="min-w-0 flex-1 text-center">
                           <span className="font-mono text-xs tabular-nums tracking-tight text-white">
@@ -678,7 +688,7 @@ export default function App() {
                           disabled={xrayIndex >= xray.steps.length - 1}
                           className="mi-chip grid size-8 shrink-0 place-items-center rounded-full text-white transition hover:border-white/30 disabled:opacity-30"
                         >
-                          ▶
+                          <ChevronRight size={14} aria-hidden />
                         </button>
                       </div>
                     </Glass>

@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Volume2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { API_BASE } from "../types";
 import type { Profile } from "../types";
@@ -189,7 +189,7 @@ export default function Copilot({
                   : "border-white/10 bg-black/40 text-white/70 hover:text-white"
               }`}
             >
-              🔊
+              <Volume2 size={14} aria-hidden />
             </button>
           )}
           {response.relevant_events.length > 0 && (

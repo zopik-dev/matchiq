@@ -1,5 +1,6 @@
 import gsap from "gsap";
 import { MotionPathPlugin } from "gsap/MotionPathPlugin";
+import { Flame, Globe, Ruler, Users } from "lucide-react";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { STR, type Lang } from "../strings";
 import type { MomentDetail, PitchEvent, Player, Team } from "../types";
@@ -436,19 +437,20 @@ export default function Pitch({
       <div className="absolute left-2 top-2 z-10 flex gap-1 rounded-full border border-white/10 bg-black/50 p-1">
         {(
           [
-            ["tokens", STR[lang].layerTokens],
-            ["control", STR[lang].layerControl],
-            ["heat", STR[lang].layerHeat],
+            ["tokens", STR[lang].layerTokens, Users],
+            ["control", STR[lang].layerControl, Globe],
+            ["heat", STR[lang].layerHeat, Flame],
           ] as const
-        ).map(([id, label]) => (
+        ).map(([id, label, Icon]) => (
           <button
             key={id}
             onClick={() => setLayer(id)}
             aria-pressed={layer === id}
-            className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition ${
+            className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold transition ${
               layer === id ? "mi-seg-active text-white" : "text-white/55 hover:text-white"
             }`}
           >
+            <Icon size={12} className="text-[#94A3B8]" aria-hidden />
             {label}
           </button>
         ))}
@@ -463,13 +465,14 @@ export default function Pitch({
           }}
           aria-pressed={measuring}
           title={STR[lang].measureTitle}
-          className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold transition ${
+          className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition ${
             measuring
               ? "mi-seg-active text-white"
               : "border-white/10 bg-black/50 text-white/60 hover:text-white"
           }`}
         >
-          📏 {STR[lang].measure}
+          <Ruler size={12} className="text-[#94A3B8]" aria-hidden />
+          {STR[lang].measure}
         </button>
         <button
           onClick={() => setShowLines((v) => !v)}
@@ -815,6 +818,16 @@ export default function Pitch({
             />
             <circle cx={measurePair.a.x} cy={measurePair.a.y} r="0.9" fill="#fff" />
             <circle cx={measurePair.b.x} cy={measurePair.b.y} r="0.9" fill="#fff" />
+            {measurePair.rupture && (
+              <g
+                transform={`translate(${measurePair.mx.toFixed(2)} ${(Math.max(4.5, measurePair.my - 5) - 5.6).toFixed(2)})`}
+              >
+                <polygon points="0,-3 2.9,1.9 -2.9,1.9" fill="#F59E0B" />
+                <text y="1.3" textAnchor="middle" fontSize="2.3" fontWeight="800" fill="#090D16">
+                  !
+                </text>
+              </g>
+            )}
             <g
               transform={`translate(${measurePair.mx.toFixed(2)} ${Math.max(4.5, measurePair.my - 5).toFixed(2)})`}
               onClick={(e) => {

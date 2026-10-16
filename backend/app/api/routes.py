@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 from app.agents import PersonalizeProfile
 from app.agents.copilot import answer_question
 from app.api.live import LiveSession
+from app.config import get_settings
 from app.engine import AnalyticsEngine, build_storyline
 from app.llm import AzureFoundryLLM, MockLLM
 from app.models.events import EventType
@@ -141,6 +142,26 @@ def get_match() -> dict:
 @router.get("/replay/state")
 def replay_state() -> dict:
     return get_session().state()
+
+
+@router.get("/integrations")
+def integrations() -> dict:
+    """Public integration status: booleans and names only, never secrets."""
+    settings = get_settings()
+    llm = AzureFoundryLLM()
+    return {
+        "llm": {
+            "provider": "azure-foundry" if llm.available() else "mock",
+            "deployment": llm.deployment if llm.available() else None,
+        },
+        "speech": {
+            "provider": "azure" if settings.azure_speech_key else "browser",
+            "region": settings.azure_speech_region or None,
+        },
+        "store": {
+            "provider": "cosmos" if settings.cosmos_configured else "memory",
+        },
+    }
 
 
 @router.post("/replay/play")

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Trophy } from "lucide-react";
 import type { MomentInfo, MomentumPoint } from "../types";
 
 const HOME_C = "#3B82F6";
@@ -184,9 +185,12 @@ export default function PressureTimeline({
         )}
       </svg>
       <div className="mt-2 flex items-center justify-between text-xs text-white/55">
-        <span>
+        <span className="flex items-center gap-1.5">
+          {hoverGoal && (
+            <Trophy size={12} className="shrink-0 text-[#94A3B8]" aria-hidden />
+          )}
           {hoverGoal
-            ? `⚽ ${hoverGoal.minute}′ ${hoverSurname} — ${hoverGoal.title}`
+            ? `${hoverGoal.minute}′ ${hoverSurname} — ${hoverGoal.title}`
             : hover !== null
               ? `${hover}′ · ${hoverValue >= 0 ? homeName : awayName} ${Math.abs(hoverValue).toFixed(0)} momentum`
               : hint}

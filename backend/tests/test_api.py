@@ -16,6 +16,34 @@ def test_health():
     assert client.get("/health").json() == {"status": "ok"}
 
 
+def test_integrations_reports_offline_defaults(monkeypatch):
+    from app.config import reload_settings
+
+    for var in (
+        "MATCHIQ_AZURE_ENDPOINT",
+        "MATCHIQ_AZURE_API_KEY",
+        "MATCHIQ_AZURE_DEPLOYMENT",
+        "MATCHIQ_AZURE_FOUNDRY_ENDPOINT",
+        "MATCHIQ_AZURE_FOUNDRY_API_KEY",
+        "MATCHIQ_AZURE_FOUNDRY_DEPLOYMENT",
+        "MATCHIQ_AZURE_SPEECH_KEY",
+        "MATCHIQ_COSMOS_ENDPOINT",
+        "MATCHIQ_COSMOS_KEY",
+    ):
+        monkeypatch.delenv(var, raising=False)
+    reload_settings()
+    try:
+        payload = client.get("/api/integrations").json()
+        assert payload == {
+            "llm": {"provider": "mock", "deployment": None},
+            "speech": {"provider": "browser", "region": "westeurope"},
+            "store": {"provider": "memory"},
+        }
+    finally:
+        monkeypatch.undo()
+        reload_settings()
+
+
 def test_index_points_to_dashboard():
     payload = client.get("/").json()
     assert payload["service"] == "MatchIQ API"

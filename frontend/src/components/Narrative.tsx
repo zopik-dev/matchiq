@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
+import { Volume2 } from "lucide-react";
 import type { MomentDetail } from "../types";
 import Glass from "./Glass";
 
@@ -52,7 +53,7 @@ export default function Narrative({
                 ))}
               </span>
             ) : (
-              "🔊"
+              <Volume2 size={14} aria-hidden />
             )}
           </button>
         )}

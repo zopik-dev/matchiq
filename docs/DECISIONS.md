@@ -2,6 +2,10 @@
 
 Log of non-obvious decisions (newest first).
 
+- (UI icons) Zero raw emoji in UI: all pictograms are lucide-react strokes
+  (slate idle, white active); SVG-only spots (pitch caliper rupture) use drawn
+  shapes. The Azure stack modal reads live provider booleans from
+  `GET /api/integrations` (never secrets) plus measured round-trip latency.
 - (Resilience) SSE auto-reconnects 3 s after a backend drop (cleared on the
   next healthy state); natural full-time sets a flag so finished matches stay
   finished instead of reconnect-looping. Shared speech service per credentials

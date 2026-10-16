@@ -15,8 +15,21 @@ const t = {
   paused: "PAUSED",
   fulltime: "FULL TIME",
   connecting: "Connecting…",
-  expTv: "📺 TV Broadcast View",
-  expConsole: "💻 Interactive Console",
+  expTv: "TV Broadcast View",
+  expConsole: "Interactive Console",
+  stackTitle: "Microsoft Technology Stack",
+  stackCompute: "Compute",
+  stackComputeDesc: "desc",
+  stackModels: "Models",
+  stackModelsDesc: "desc",
+  stackAudio: "Audio",
+  stackAudioDesc: "desc",
+  stackStore: "Store",
+  stackStoreDesc: "desc",
+  stackLatency: "Latency",
+  stackProviderCloud: "Cloud",
+  stackProviderMock: "Mock",
+  stackClose: "Close",
 };
 
 function replay(over: Partial<ReplayState> = {}): ReplayState {
@@ -113,5 +126,24 @@ describe("Header", () => {
   it("shows the azure voice source while speaking", () => {
     renderHeader({ audioSpeaking: true, audioSource: "browser" as const });
     expect(screen.getByText("· Browser")).toBeInTheDocument();
+  });
+
+  it("opens the Azure stack inspector with live provider status", async () => {
+    mockFetch.mockResolvedValue(
+      ok({
+        llm: { provider: "mock", deployment: null },
+        speech: { provider: "browser", region: "westeurope" },
+        store: { provider: "memory" },
+      }),
+    );
+    renderHeader();
+    fireEvent.click(screen.getByTitle("Microsoft Technology Stack"));
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining("/api/integrations"),
+    );
+    expect(await screen.findByText("Mock")).toBeInTheDocument();
+    expect(screen.getByText("browser")).toBeInTheDocument();
+    expect(screen.getByText("memory")).toBeInTheDocument();
   });
 });

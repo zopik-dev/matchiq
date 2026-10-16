@@ -1,6 +1,17 @@
-import { Pause, Play, RotateCcw, Volleyball, Zap } from "lucide-react";
+import { useState } from "react";
+import {
+  LayoutDashboard,
+  Mic,
+  Pause,
+  Play,
+  RotateCcw,
+  Tv,
+  Volleyball,
+  Zap,
+} from "lucide-react";
 import { controls } from "../api";
 import type { Profile, ReplayState, Team } from "../types";
+import AzureStack from "./AzureStack";
 import Glass from "./Glass";
 
 const SPEEDS = [1, 10, 60];
@@ -66,11 +77,25 @@ export default function Header({
     connecting: string;
     expTv: string;
     expConsole: string;
+    stackTitle: string;
+    stackCompute: string;
+    stackComputeDesc: string;
+    stackModels: string;
+    stackModelsDesc: string;
+    stackAudio: string;
+    stackAudioDesc: string;
+    stackStore: string;
+    stackStoreDesc: string;
+    stackLatency: string;
+    stackProviderCloud: string;
+    stackProviderMock: string;
+    stackClose: string;
   };
 }) {
   const minute = replay?.minute ?? 0;
   const score = replay?.score ?? { home: 0, away: 0 };
   const ended = !!replay && replay.index >= replay.total - 1;
+  const [stackOpen, setStackOpen] = useState(false);
   return (
     <header className="sticky top-0 z-20 flex justify-center px-4 pt-5">
       <Glass className="flex w-full max-w-6xl flex-row items-center justify-between gap-3 px-4 py-2.5 pl-6">
@@ -149,8 +174,8 @@ export default function Header({
           >
             {(
               [
-                { id: "tv", label: t.expTv },
-                { id: "console", label: t.expConsole },
+                { id: "tv", label: t.expTv, Icon: Tv },
+                { id: "console", label: t.expConsole, Icon: LayoutDashboard },
               ] as const
             ).map((x) => (
               <button
@@ -158,12 +183,17 @@ export default function Header({
                 role="tab"
                 aria-selected={experience === x.id}
                 onClick={() => onExperience(x.id)}
-                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
                   experience === x.id
                     ? "mi-seg-active text-white"
                     : "text-white/55 hover:text-white"
                 }`}
               >
+                <x.Icon
+                  size={13}
+                  aria-hidden
+                  className={experience === x.id ? "text-white" : "text-[#94A3B8]"}
+                />
                 {x.label}
               </button>
             ))}
@@ -213,6 +243,18 @@ export default function Header({
             </span>
           )}
           <button
+            onClick={() => setStackOpen(true)}
+            title="Microsoft Technology Stack"
+            className="flex items-center gap-1.5 rounded-full border border-white/10 bg-black/40 px-3 py-1.5 text-xs font-semibold text-white/70 transition hover:border-white/25 hover:text-white"
+          >
+            <Zap size={13} className="text-[#94A3B8]" aria-hidden />
+            Azure Native · Foundry GPT-4o
+            <span className="relative flex size-2" aria-hidden>
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
+              <span className="relative inline-flex size-2 rounded-full bg-emerald-400" />
+            </span>
+          </button>
+          <button
             onClick={onToggleAudio}
             aria-pressed={audioOn}
             title="Toggle live broadcast audio"
@@ -220,7 +262,8 @@ export default function Header({
               audioOn ? "mi-seg-active text-white" : "text-white/55 hover:text-white"
             }`}
           >
-            🎙️ Live Audio: {audioOn ? "ON" : "OFF"}
+            <Mic size={13} className="text-[#94A3B8]" aria-hidden />
+            Live Audio: {audioOn ? "ON" : "OFF"}
             {audioSpeaking && audioSource !== "idle" && (
               <span className="font-mono text-[10px] uppercase tracking-widest text-white/50">
                 · {audioSource === "azure" ? "Azure" : "Browser"}
@@ -240,6 +283,7 @@ export default function Header({
           </button>
         </div>
       </Glass>
+      <AzureStack open={stackOpen} onClose={() => setStackOpen(false)} t={t} />
     </header>
   );
 }
