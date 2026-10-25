@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite --port 5173",
     "build": "tsc --noEmit && vite build",
+    "build:matchiq": "tsc --noEmit && vite build --config vite.config.matchiq.ts",
     "test": "vitest run",
     "preview": "vite preview --port 5173"
   },

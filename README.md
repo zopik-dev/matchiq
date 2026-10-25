@@ -103,6 +103,38 @@ backend API on http://localhost:8000. No `.env` needed: the demo boots
 fully offline (MockLLM + in-memory store); export any `MATCHIQ_AZURE_*` /
 `MATCHIQ_COSMOS_*` vars in your shell first and compose passes them through.
 
+## One host, many sites — MatchIQ under `/matchiq`
+
+If you run other sites on the same host, build the frontend for a subpath and
+serve it next to them behind one nginx:
+
+```powershell
+cd frontend
+npm run build:matchiq      # sets VITE_BASE_PATH=/matchiq/
+```
+
+Copy `frontend/dist/` to `/usr/share/nginx/html/matchiq/` on the host and use
+`infra/nginx.conf` as a template — it already has `/matchiq/` → SPA and
+`/api/*` → backend routes, so the SPA talks to the same backend while other
+sites live under their own prefixes (`/other-site/`, etc.).
+
+Example nginx block:
+
+```nginx
+location /matchiq/ {
+    alias /usr/share/nginx/html/matchiq/;
+    try_files $uri $uri/ /matchiq/index.html;
+}
+
+location /api/ {
+    proxy_pass http://backend:8000;
+    proxy_buffering off;           # SSE live stream
+    ...
+}
+```
+
+Open `http://<host>/matchiq/` — the match plays exactly as on `:5173`.
+
 ## Quickstart — Azure (scale-to-zero)
 
 ```powershell
