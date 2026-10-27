@@ -106,14 +106,6 @@ def test_invalid_event_is_skipped_gracefully(monkeypatch):
     assert len(skipped) == 1 and skipped[0].degraded
 
 
-def test_ukrainian_beginner_profile():
-    profile = PersonalizeProfile(mode="beginner", language="uk", favorite_club="NGU")
-    result, _ = _run(profile=profile)
-    assert result.lines
-    assert any("Простими словами:" in line for line in result.lines)
-    assert "Підсумок матчу:" in result.recap
-
-
 def test_player_focus_filters_lines_but_keeps_recap():
     profile = PersonalizeProfile(player_focus="NGU_11")
     result, _ = _run(profile=profile)

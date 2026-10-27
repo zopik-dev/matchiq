@@ -87,7 +87,7 @@ def player_telemetry(match: MatchData, player_id: str, lang: str = "en", mode: s
         "distance_m": round(distance_m),
         "top_speed_kmh": top_speed,
         "insight": _insight(
-            lang if lang in ("en", "uk") else "en",
+            "en",
             mode if mode in ("analyst", "fan", "beginner") else "fan",
             player.name,
             team.name,
@@ -125,48 +125,27 @@ def _insight(
             f"{entries} final-third entries and {distance}m covered at up to "
             f"{top_speed} km/h."
         )
-        role_uk = (
-            f"{name} веде атаку {team}: {goals} гол(и) з {xg} xG, "
-            f"{entries} входжень у фінальну третину та {distance} м "
-            f"на швидкості до {top_speed} км/год."
-        )
     elif position == "MF":
         role_en = (
             f"{name} is {team}'s engine room: {passes} passes at {accuracy}% "
             f"accuracy, {entries} final-third entries, {duels} duels won over "
             f"{distance}m."
         )
-        role_uk = (
-            f"{name} — мотор {team}: {passes} передач з точністю {accuracy}%, "
-            f"{entries} входжень у фінальну третину, {duels} виграних "
-            f"єдиноборств на {distance} м."
-        )
     elif position == "DF":
         role_en = (
             f"{name} anchors the {team} back line: {duels} duels won, "
             f"{passes} passes at {accuracy}% to start attacks, {distance}m covered."
         )
-        role_uk = (
-            f"{name} тримає оборону {team}: {duels} виграних єдиноборств, "
-            f"{passes} передач з точністю {accuracy}%, {distance} м."
-        )
     else:
         role_en = (
             f"{name} guards the {team} net with {passes} distributions at {accuracy}% accuracy."
         )
-        role_uk = f"{name} захищає ворота {team}: {passes} введень м'яча з точністю {accuracy}%."
-    body = role_en if lang == "en" else role_uk
+    body = role_en
     if mode == "analyst":
-        head = {"en": "Tactical read: ", "uk": "Тактичний розбір: "}[lang]
-        return head + body
+        return "Tactical read: " + body
     if mode == "beginner":
-        tail = {
-            "en": " In short: these numbers describe what they actually did with the ball.",
-            "uk": " Простіше кажучи: ці цифри показують, що він реально робив з м'ячем.",
-        }[lang]
-        return body + tail
-    head = {"en": "What a shift! ", "uk": "Який матч! "}[lang]
-    return head + body
+        return body + " In short: these numbers describe what they actually did with the ball."
+    return "What a shift! " + body
 
 
 def _slim(event) -> dict:

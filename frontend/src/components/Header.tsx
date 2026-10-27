@@ -97,8 +97,12 @@ export default function Header({
   const ended = !!replay && replay.index >= replay.total - 1;
   const [stackOpen, setStackOpen] = useState(false);
   return (
-    <header className="sticky top-0 z-20 flex justify-center px-4 pt-5">
-      <Glass className="flex w-full max-w-6xl flex-row items-center justify-between gap-3 px-4 py-2.5 pl-6">
+    <header className="sticky top-0 z-20 flex justify-center px-3 pt-3 sm:px-4 sm:pt-5">
+      <Glass className="relative flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 px-3 py-2.5 sm:pl-6">
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/35 to-transparent"
+        />
         <div className="flex flex-wrap items-center justify-center gap-3">
           <span className="mi-chip flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold tracking-widest text-white">
             <i
@@ -107,7 +111,7 @@ export default function Header({
             />
             {ended ? t.fulltime : replay?.playing ? t.live : t.paused}
           </span>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-center gap-3">
             <ClubTag id={home.id} name={home.name} side="home" />
             <span className="mi-chip rounded-full px-3.5 py-1 font-mono text-lg font-semibold tabular-nums text-white sm:text-xl">
               {score.home} – {score.away}
@@ -182,6 +186,7 @@ export default function Header({
                 key={x.id}
                 role="tab"
                 aria-selected={experience === x.id}
+                aria-label={x.label}
                 onClick={() => onExperience(x.id)}
                 className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
                   experience === x.id
@@ -194,7 +199,7 @@ export default function Header({
                   aria-hidden
                   className={experience === x.id ? "text-white" : "text-[#94A3B8]"}
                 />
-                {x.label}
+                <span className="hidden sm:inline">{x.label}</span>
               </button>
             ))}
           </div>
@@ -219,24 +224,6 @@ export default function Header({
               </button>
             ))}
           </div>
-          <div
-            className="flex gap-1 rounded-full border border-white/10 bg-black/40 p-1"
-            style={{ boxShadow: "inset 0 2px 6px rgba(0,0,0,0.5)" }}
-          >
-            {(["en", "uk"] as const).map((l) => (
-              <button
-                key={l}
-                onClick={() => onProfile({ lang: l })}
-                className={`rounded-full px-3 py-1.5 font-mono text-xs font-bold uppercase tabular-nums transition ${
-                  profile.lang === l
-                    ? "mi-seg-active text-white"
-                    : "text-white/55 hover:text-white"
-                }`}
-              >
-                {l === "en" ? "EN" : "UA"}
-              </button>
-            ))}
-          </div>
           {!connected && (
             <span className="flex items-center gap-1 text-xs text-white/50">
               <Volleyball size={13} /> {t.connecting}
@@ -245,7 +232,7 @@ export default function Header({
           <button
             onClick={() => setStackOpen(true)}
             title="Microsoft Technology Stack"
-            className="flex items-center gap-1.5 rounded-full border border-white/10 bg-black/40 px-3 py-1.5 text-xs font-semibold text-white/70 transition hover:border-white/25 hover:text-white"
+            className="hidden items-center gap-1.5 rounded-full border border-white/10 bg-black/40 px-3 py-1.5 text-xs font-semibold text-white/70 transition hover:border-white/25 hover:text-white sm:flex"
           >
             <Zap size={13} className="text-[#94A3B8]" aria-hidden />
             Azure Native · Foundry GPT-4o
@@ -257,13 +244,14 @@ export default function Header({
           <button
             onClick={onToggleAudio}
             aria-pressed={audioOn}
+            aria-label={`Live audio ${audioOn ? "on" : "off"}`}
             title="Toggle live broadcast audio"
             className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
               audioOn ? "mi-seg-active text-white" : "text-white/55 hover:text-white"
             }`}
           >
             <Mic size={13} className="text-[#94A3B8]" aria-hidden />
-            Live Audio: {audioOn ? "ON" : "OFF"}
+            <span className="hidden sm:inline">Live Audio: {audioOn ? "ON" : "OFF"}</span>
             {audioSpeaking && audioSource !== "idle" && (
               <span className="font-mono text-[10px] uppercase tracking-widest text-white/50">
                 · {audioSource === "azure" ? "Azure" : "Browser"}
@@ -290,7 +278,7 @@ export default function Header({
 
 export function BrandMark() {
   return (
-    <span className="flex items-center gap-1.5 text-sm font-semibold tracking-tight text-white">
+    <span className="flex items-center gap-1.5 text-sm font-semibold normal-case tracking-tight text-white">
       <Zap
         size={15}
         className="text-white"

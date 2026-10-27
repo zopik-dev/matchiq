@@ -2,29 +2,28 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { API_BASE } from "../types";
 
 export type AudioSource = "azure" | "browser" | "idle";
-export type SpeakLang = "en" | "uk";
+export type SpeakLang = "en";
 
 const MUTE_KEY = "matchiq:commentary-muted";
 
-function pickVoice(voices: SpeechSynthesisVoice[], lang: SpeakLang): SpeechSynthesisVoice | null {
-  const prefix = lang === "uk" ? "uk" : "en";
-  const exact = voices.find((v) => v.lang.toLowerCase().startsWith(lang === "uk" ? "uk" : "en-gb"));
+function pickVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | null {
+  const exact = voices.find((v) => v.lang.toLowerCase().startsWith("en-gb"));
   if (exact) return exact;
-  const loose = voices.find((v) => v.lang.toLowerCase().startsWith(prefix));
+  const loose = voices.find((v) => v.lang.toLowerCase().startsWith("en"));
   return loose ?? null;
 }
 
-function speakWithBrowser(text: string, lang: SpeakLang, onEnd: () => void): void {
+function speakWithBrowser(text: string, onEnd: () => void): void {
   const synth = window.speechSynthesis;
   synth.cancel();
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = lang === "uk" ? "uk-UA" : "en-GB";
+  utterance.lang = "en-GB";
   utterance.rate = 1.1;
   utterance.pitch = 1.05;
   const applyVoice = () => {
     const voices = synth.getVoices();
     if (voices.length > 0) {
-      const best = pickVoice(voices, lang);
+      const best = pickVoice(voices);
       if (best) utterance.voice = best;
     }
   };
@@ -156,7 +155,7 @@ export function useCommentaryAudio() {
       }
       try {
         setAudioSource("browser");
-        speakWithBrowser(line, lang, finish);
+        speakWithBrowser(line, finish);
       } catch {
         finish();
       }

@@ -88,10 +88,10 @@ describe("useCommentaryAudio", () => {
     vi.stubGlobal("fetch", mockFetch);
     const { result } = renderHook(() => useCommentaryAudio());
     await act(async () => {
-      await result.current.speak("Гол!", "uk", "goal");
+      await result.current.speak("Goal!", "en", "goal");
     });
     expect(synth().spoken).toHaveLength(1);
-    expect(synth().spoken[0].lang).toBe("uk-UA");
+    expect(synth().spoken[0].lang).toBe("en-GB");
     expect(synth().spoken[0].rate).toBe(1.1);
     expect(result.current.audioSource).toBe("browser");
   });

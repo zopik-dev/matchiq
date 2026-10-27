@@ -7,6 +7,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /srv/backend
 
+ENV MATCHIQ_DATA_DIR=/srv/data/samples
+
 # Install the backend package (runtime deps only: fastapi, pydantic, uvicorn).
 COPY backend/pyproject.toml ./
 COPY backend/app ./app

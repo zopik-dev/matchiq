@@ -48,7 +48,7 @@ export default function Feed({
             onClick={clickable ? () => onGoalClick(item.moment_id) : undefined}
             title={clickable ? `${item.moment_type} · ${item.minute}′` : undefined}
             className={`mi-tile p-3.5 ${
-              clickable ? "cursor-pointer transition hover:border-white/25" : ""
+              clickable ? "mi-lift cursor-pointer hover:border-white/25" : ""
             }`}
           >
             <div className="mb-1.5 flex items-center gap-2">

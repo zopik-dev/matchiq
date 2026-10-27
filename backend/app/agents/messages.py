@@ -44,6 +44,6 @@ class PersonalizeProfile(BaseModel):
     """Output preferences for the PersonalizeAgent."""
 
     mode: Literal["analyst", "fan", "beginner"] = "fan"
-    language: Literal["en", "uk"] = "en"
+    language: Literal["en"] = "en"
     favorite_club: str | None = None
     player_focus: str | None = None

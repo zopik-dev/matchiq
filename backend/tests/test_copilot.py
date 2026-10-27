@@ -77,12 +77,6 @@ def test_goal_answer_names_scorer_and_score():
     assert _scorer_name(57) in result["answer"] and "1-1" in result["answer"]
 
 
-def test_ukrainian_beginner_answer():
-    result = answer_question("Explain the 89' counter", mode="beginner", language="uk")
-    assert "Простими словами:" in result["answer"]
-    assert check_grounding(result["answer"], result["evidence"])
-
-
 def test_exploding_llm_still_returns_grounded_answer():
     result = answer_question("Why did Eastvale score at 57'?", llm=ExplodingLLM())
     assert _scorer_name(57) in result["answer"]
@@ -98,8 +92,10 @@ def test_endpoint_schema_and_validation():
     assert "1-1" in payload["answer"]
     assert client.post("/api/copilot/ask", json={"query": ""}).status_code == 422
     assert client.post("/api/copilot/ask", json={"query": "hi", "mode": "coach"}).status_code == 422
-    uk = client.post(
-        "/api/copilot/ask",
-        json={"query": "Why did Eastvale score at 57'?", "mode": "fan", "lang": "uk"},
-    ).json()
-    assert "забиває" in uk["answer"] or "Тому що" in uk["answer"]
+    assert (
+        client.post(
+            "/api/copilot/ask",
+            json={"query": "Why did Eastvale score at 57'?", "mode": "fan", "lang": "uk"},
+        ).status_code
+        == 422
+    )

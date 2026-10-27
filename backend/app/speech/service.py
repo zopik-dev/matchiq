@@ -18,7 +18,6 @@ import xml.sax.saxutils as saxutils
 
 VOICES: dict[str, str] = {
     "en": "en-GB-RyanNeural",
-    "uk": "uk-UA-OstapNeural",
 }
 
 OUTPUT_FORMAT = "audio-16khz-32kbitrate-mono-mp3"
@@ -39,7 +38,7 @@ def build_ssml(text: str, lang: str, moment_type: str | None = None) -> tuple[st
     Returns ``(ssml, voice_name)``.
     """
     voice = _voice_for(lang)
-    locale = "uk-UA" if lang == "uk" else "en-GB"
+    locale = "en-GB"
     safe = saxutils.escape(text)
     if moment_type in EXCITED_MOMENTS:
         body = f'<prosody rate="+12%" pitch="+3%">{safe}</prosody>'
@@ -87,8 +86,8 @@ class AzureSpeechService:
         """Synthesize ``text`` to MP3 bytes, using the cache when possible."""
         if not self.is_available():
             raise RuntimeError("Azure Speech is not configured (missing API key)")
-        if lang not in ("en", "uk"):
-            raise ValueError("lang must be en|uk")
+        if lang != "en":
+            raise ValueError("lang must be en")
         cleaned = " ".join(text.split())
         if not cleaned:
             raise ValueError("text must be non-empty")

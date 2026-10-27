@@ -2,6 +2,22 @@
 
 Log of non-obvious decisions (newest first).
 
+- (Polish) Console right rail tabs shortened to Narrative / Player / Copilot with
+  equal-width pills so they never wrap; the pitch header now carries the synthetic
+  stadium (Meridian Park) instead of repeating the MatchIQ brand; narrative no
+  longer blanks during rapid updates (initial opacity 0.35 instead of a 0.35 s
+  exit wait). Global scrollbars are thin/dark again for discoverability, plus
+  focus-visible rings and a prefers-reduced-motion guard. Empty states use a live
+  equalizer instead of plain text.
+- (Responsive) Replaced the hard `min-w-[1200px]` with a responsive single-column
+  layout below `xl` (pitch full width, right rail below); header controls collapse
+  to icons on small screens; TV pitch fits its height (no scroll) via a
+  `calc((100dvh - 9rem) * 105 / 68)` width. Short viewports (900–1040 px) narrow
+  the console max width so the pressure timeline stays above the fold.
+- (Launch) Added `start.ps1` / `stop.ps1` for one-command local boot (Python + Node
+  checks, dependency install, port freeing, hidden processes, health wait, browser
+  open) and documented them in the README. Screenshots committed under
+  `docs/screenshots/`.
 - (UI icons) Zero raw emoji in UI: all pictograms are lucide-react strokes
   (slate idle, white active); SVG-only spots (pitch caliper rupture) use drawn
   shapes. The Azure stack modal reads live provider booleans from

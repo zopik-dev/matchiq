@@ -24,3 +24,6 @@ data/samples/match_*.json
 # Frontend
 frontend/node_modules/
 frontend/dist/
+
+# Local launcher state (PIDs + dev logs)
+.run/

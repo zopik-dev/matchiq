@@ -42,7 +42,7 @@ Criterion: **Agentic design**.
 
 Show: switch to TV mode, seek near 88', 89' goal lower-third + commentary;
 back to console: 89' goal card with evidence badges, narrative panel updating.
-Switch mode Fan → Analyst → Beginner, then EN → UA.
+Switch mode Fan → Analyst → Beginner.
 Criterion: **UX/Presentation** + explainability.
 
 ## 1:25–1:45 — Personalization + Azure alignment

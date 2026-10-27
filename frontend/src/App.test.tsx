@@ -124,6 +124,8 @@ describe("App live wiring", () => {
         makeMoment({ moment_id: "m-goal", line: "A stunning header." }),
       );
     });
-    expect(await screen.findByText("A stunning header.")).toBeInTheDocument();
+    // The same grounded line appears in the live narrative and the storyline
+    // feed, so assert the moment reached the UI rather than a unique node.
+    expect((await screen.findAllByText("A stunning header.")).length).toBeGreaterThan(0);
   });
 });

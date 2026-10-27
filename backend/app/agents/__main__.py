@@ -3,7 +3,7 @@
 Run from ``backend/``::
 
     python -m app.agents run
-    python -m app.agents run --mode beginner --lang uk --club NGU --player-focus NGU_10
+    python -m app.agents run --mode beginner --club NGU --player-focus NGU_10
 """
 
 import argparse
@@ -73,7 +73,7 @@ def build_parser() -> argparse.ArgumentParser:
     run = sub.add_parser("run", help="run a match end to end through all agents")
     run.add_argument("--file", default=str(DEFAULT_FILE))
     run.add_argument("--mode", default="fan", choices=["analyst", "fan", "beginner"])
-    run.add_argument("--lang", default="en", choices=["en", "uk"])
+    run.add_argument("--lang", default="en", choices=["en"])
     run.add_argument("--club", default=None)
     run.add_argument("--player-focus", default=None)
     run.add_argument("--llm", default="mock", choices=["mock", "azure"])

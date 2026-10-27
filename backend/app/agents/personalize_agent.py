@@ -8,25 +8,22 @@ involving that player.
 
 from app.agents.messages import AgentMessage, PersonalizeProfile
 
-_MODE_PREFIX: dict[str, dict[str, str]] = {
-    "analyst": {"en": "ANALYST", "uk": "АНАЛІТИКА"},
-    "fan": {"en": "What a moment!", "uk": "Який момент!"},
-    "beginner": {"en": "In simple terms:", "uk": "Простими словами:"},
+_MODE_PREFIX: dict[str, str] = {
+    "analyst": "ANALYST",
+    "fan": "What a moment!",
+    "beginner": "In simple terms:",
 }
 
-_XG_GLOSSARY = {
-    "en": " (xG means chance quality: 1.0 is a certain goal)",
-    "uk": " (xG — якість моменту: 1.0 означає неминучий гол)",
-}
+_XG_GLOSSARY = " (xG means chance quality: 1.0 is a certain goal)"
 
-_FAV_LINE = {"en": "Your club. ", "uk": "Ваш клуб. "}
+_FAV_LINE = "Your club. "
 
-_RECAP_HEAD = {"en": "Full-time recap:", "uk": "Підсумок матчу:"}
+_RECAP_HEAD = "Full-time recap:"
 
 
-def _xg_glossary(text: str, language: str) -> str:
-    if "xG" in text and "chance quality" not in text and "якість моменту" not in text:
-        return text + _XG_GLOSSARY[language]
+def _xg_glossary(text: str, language: str = "en") -> str:
+    if "xG" in text and "chance quality" not in text:
+        return text + _XG_GLOSSARY
     return text
 
 
@@ -57,16 +54,16 @@ class PersonalizeAgent:
             if focus not in blob:
                 return None
         text = str(line.payload.get("text", ""))
-        lang = self.profile.language
+        lang = "en"
         if self.profile.mode == "analyst":
-            text = f"[{_MODE_PREFIX['analyst'][lang]}] {text}"
+            text = f"[{_MODE_PREFIX['analyst']}] {text}"
         elif self.profile.mode == "fan":
-            text = f"{_MODE_PREFIX['fan'][lang]} {text}"
+            text = f"{_MODE_PREFIX['fan']} {text}"
         else:
-            text = _xg_glossary(f"{_MODE_PREFIX['beginner'][lang]} {text}", lang)
+            text = _xg_glossary(f"{_MODE_PREFIX['beginner']} {text}", lang)
         fav = self.profile.favorite_club
         if fav and line.evidence.get("team_id") == fav:
-            text = f"{_FAV_LINE[lang]}{text}"
+            text = f"{_FAV_LINE}{text}"
         _ = names
         return AgentMessage(
             id=message_id,
@@ -81,11 +78,11 @@ class PersonalizeAgent:
         self, recap: AgentMessage, names: dict[str, str], message_id: str
     ) -> AgentMessage:
         """Format the recap; always kept even under player focus."""
-        lang = self.profile.language
-        text = f"{_RECAP_HEAD[lang]} {recap.payload.get('text', '')}"
+        lang = "en"
+        text = f"{_RECAP_HEAD} {recap.payload.get('text', '')}"
         fav = self.profile.favorite_club
         if fav and fav in names:
-            text = f"{_FAV_LINE[lang]}{text}"
+            text = f"{_FAV_LINE}{text}"
         return AgentMessage(
             id=message_id,
             kind="personalized",

@@ -433,14 +433,30 @@ export default function App() {
 
   if (!match || !home || !away) {
     return (
-      <div className="flex h-screen items-center justify-center bg-ink text-slate-300">
-        {t.connecting} — {t.backendDown}
+      <div className="relative flex min-h-dvh items-center justify-center bg-ink px-6 text-slate-300">
+        <div aria-hidden className="mi-noir" />
+        <div className="relative text-center">
+          <div className="flex justify-center">
+            <BrandMark />
+          </div>
+          <div className="mt-5 flex items-end justify-center gap-[3px]" aria-hidden>
+            {[0, 1, 2, 3, 4].map((i) => (
+              <i
+                key={i}
+                className="mi-eq w-[3px] rounded-full bg-[#5EA0FF]/80"
+                style={{ height: `${10 + (i % 4) * 5}px`, animationDelay: `${i * 140}ms` }}
+              />
+            ))}
+          </div>
+          <p className="mt-4 text-sm font-medium tracking-tight text-white/80">{t.connecting}</p>
+          <p className="mt-1 text-xs text-white/40">{t.backendDown}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen min-w-[1200px] flex-col overflow-y-hidden bg-ink text-white">
+    <div className="flex min-h-dvh flex-col bg-ink text-white xl:h-screen xl:overflow-hidden">
       <div aria-hidden className="mi-noir" />
       <div aria-hidden className="mi-noir-grain" />
 
@@ -472,7 +488,7 @@ export default function App() {
       )}
 
       {experience === "tv" && (
-        <div className="relative z-20 mx-auto flex w-full max-w-[1600px] flex-wrap items-start justify-between gap-2 px-8 pt-4">
+        <div className="relative z-20 mx-auto flex w-full max-w-[1600px] flex-wrap items-start justify-between gap-2 px-4 pt-3 sm:px-8 sm:pt-4">
           <Scorebug home={home} away={away} replay={replay} liveLabel={t.live} />
           <div className="flex items-center gap-2">
             <button
@@ -495,23 +511,29 @@ export default function App() {
       <main
         className={
           experience === "tv"
-            ? "relative mx-auto min-h-0 w-full max-w-[1600px] flex-1 overflow-y-auto px-8 pb-6 pt-4"
-            : "relative mx-auto grid w-full max-w-[1400px] min-h-0 flex-1 grid-cols-[minmax(0,1fr)_400px] gap-6 overflow-visible px-8 pb-4 pt-6"
+            ? "relative mx-auto min-h-0 w-full max-w-[1600px] flex-1 overflow-hidden px-4 pb-6 pt-3 sm:px-8 sm:pt-4"
+            : "mi-console relative mx-auto grid w-full max-w-[1400px] min-h-0 flex-1 grid-cols-1 gap-4 overflow-visible px-4 pb-4 pt-4 sm:px-6 xl:grid-cols-[minmax(0,1fr)_400px] xl:gap-6 xl:px-8 xl:pt-6"
         }
       >
-        <section className="flex min-h-0 flex-col gap-4 overflow-y-auto pr-0.5">
+        <section className="flex min-h-0 flex-col gap-4 overflow-visible xl:overflow-y-auto xl:pr-0.5">
           <Glass className="shrink-0 p-3 sm:p-4">
             {experience === "console" && (
               <div className="flex items-center justify-between px-2 pb-3 pt-1">
                 <div>
-                  <div className="text-[11px] uppercase tracking-[0.18em] text-white/45">
-                    {t.matchCentre}
+                  <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-white/45">
+                    <BrandMark />
+                    <span className="text-white/20">/</span>
+                    <span>
+                      {t.matchCentre} · {match.meta.stadium}
+                    </span>
                   </div>
-                  <h1 className="text-xl font-semibold tracking-tight">
-                    <BrandMark /> · {home.name} vs {away.name}
+                  <h1 className="mt-1 text-xl font-semibold tracking-tight">
+                    {home.name}
+                    <span className="mx-2 font-normal text-white/30">vs</span>
+                    {away.name}
                   </h1>
                 </div>
-                <div className="flex items-center gap-4 text-xs text-white/60">
+                <div className="hidden items-center gap-4 text-xs text-white/60 sm:flex">
                   <span className="flex items-center gap-1.5">
                     <i className="size-2.5 rounded-full bg-home" />
                     {home.name}
@@ -540,6 +562,7 @@ export default function App() {
                 }}
                 xray={xrayOverlay}
                 lang={profile.lang}
+                fit={experience === "tv"}
               />
             </div>
           </Glass>
@@ -564,10 +587,10 @@ export default function App() {
         </section>
 
         {experience === "console" && (
-          <aside className="flex min-h-0 flex-col gap-3 overflow-y-auto pr-0.5 sticky top-28 max-h-[calc(100vh-9rem)]">
+          <aside className="flex min-h-0 flex-col gap-3 overflow-visible xl:sticky xl:top-28 xl:max-h-[calc(100vh-14rem)] xl:overflow-y-auto xl:pr-0.5">
           <div
             role="tablist"
-            className="flex shrink-0 gap-1 self-start rounded-full border border-white/10 bg-black/40 p-1"
+            className="flex w-full shrink-0 gap-1 rounded-full border border-white/10 bg-black/40 p-1"
             style={{ boxShadow: "inset 0 2px 6px rgba(0,0,0,0.5)" }}
           >
             {(["insight", "player", "copilot"] as const).map((tab) => (
@@ -576,7 +599,7 @@ export default function App() {
                 role="tab"
                 aria-selected={sideTab === tab}
                 onClick={() => setSideTab(tab)}
-                className={`relative rounded-full px-4 py-1.5 text-xs font-semibold transition ${
+                className={`relative flex flex-1 items-center justify-center whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold transition ${
                   sideTab === tab ? "mi-seg-active text-white" : "text-white/55 hover:text-white"
                 }`}
               >
@@ -602,7 +625,7 @@ export default function App() {
                     </>
                   ) : (
                     <>
-                      <Sparkles size={13} className="text-[#94A3B8]" aria-hidden /> {t.copilotTitle}
+                      <Sparkles size={13} className="text-[#94A3B8]" aria-hidden /> {t.tabCopilot}
                     </>
                   )}
                 </span>
@@ -700,6 +723,7 @@ export default function App() {
                 featured={featured}
                 mode={profile.mode}
                 empty={t.noMoments}
+                idleTitle={t.narrativeIdle}
                 speaking={isSpeaking}
                 onListen={
                   featured
@@ -728,8 +752,6 @@ export default function App() {
                 awayName={away.name}
                 lookup={lookup}
               />
-
-              <Breakdown title={t.breakdown} featured={featured} events={events} lookup={lookup} />
 
               <Glass className="px-4 py-3">
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px]">
@@ -776,7 +798,16 @@ export default function App() {
                 </div>
                 <div className="pr-0.5">
                   {feed.length === 0 ? (
-                    <p className="text-sm text-white/40">{t.noMoments}</p>
+                    <div className="mi-tile flex items-center gap-3 p-4">
+                      <span className="relative flex size-2.5 shrink-0" aria-hidden>
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#5EA0FF] opacity-50" />
+                        <span className="relative inline-flex size-2.5 rounded-full bg-[#5EA0FF]" />
+                      </span>
+                      <div>
+                        <div className="text-sm text-white/75">{t.narrativeIdle}</div>
+                        <div className="mt-0.5 text-xs text-white/40">{t.noMoments}</div>
+                      </div>
+                    </div>
                   ) : (
                     <Feed
                       items={feed.slice(-6)}
@@ -789,6 +820,8 @@ export default function App() {
                   )}
                 </div>
               </Glass>
+
+              <Breakdown title={t.breakdown} featured={featured} events={events} lookup={lookup} />
             </>
           ) : sideTab === "player" ? (
             <PlayerDossier
@@ -842,7 +875,7 @@ export default function App() {
       )}
 
       {experience === "console" && (
-        <footer className="relative mx-auto w-full max-w-[1400px] shrink-0 px-8 pb-3">
+        <footer className="relative mx-auto w-full max-w-[1400px] shrink-0 px-4 pb-3 sm:px-6 xl:px-8">
           <TracePanel hops={hops} title={t.trace} />
         </footer>
       )}

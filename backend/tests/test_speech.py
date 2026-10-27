@@ -20,12 +20,6 @@ def test_ssml_english_voice():
     assert "Goal for Northgate!" in ssml
 
 
-def test_ssml_ukrainian_voice():
-    ssml, voice = build_ssml("Гол забиває Іствейл!", "uk", None)
-    assert voice == "uk-UA-OstapNeural"
-    assert "uk-UA-OstapNeural" in ssml
-
-
 def test_ssml_prosody_goal_vs_tactical():
     excited, _ = build_ssml("What a strike!", "en", "goal")
     assert 'rate="+12%"' in excited
@@ -44,7 +38,7 @@ def test_ssml_escapes_markup():
 
 
 def test_cache_key_differs_by_lang_and_moment():
-    assert cache_key("Goal!", "en", "goal") != cache_key("Goal!", "uk", "goal")
+    assert cache_key("Goal!", "en", "goal") != cache_key("Goal!", "fr", "goal")
     assert cache_key("Goal!", "en", "goal") != cache_key("Goal!", "en", None)
     assert cache_key("Goal!", "en", "goal") == cache_key("Goal!", "en", "goal")
 
@@ -143,7 +137,7 @@ def test_endpoint_returns_audio_when_configured(monkeypatch):
         client = TestClient(app)
         res = client.post(
             "/api/speech/synthesize",
-            json={"text": "What a goal!", "lang": "uk"},
+            json={"text": "What a goal!", "lang": "en"},
         )
         assert res.status_code == 200
         assert res.headers["content-type"] == "audio/mpeg"

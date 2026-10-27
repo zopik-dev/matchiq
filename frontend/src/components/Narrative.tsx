@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { Volume2 } from "lucide-react";
 import type { MomentDetail } from "../types";
 import Glass from "./Glass";
@@ -7,12 +7,14 @@ export default function Narrative({
   featured,
   mode,
   empty,
+  idleTitle,
   onListen,
   speaking,
 }: {
   featured: MomentDetail | null;
   mode: string;
   empty: string;
+  idleTitle?: string;
   onListen?: () => void;
   speaking?: boolean;
 }) {
@@ -58,14 +60,13 @@ export default function Narrative({
           </button>
         )}
       </div>
-      <AnimatePresence mode="wait">
+      <div aria-live="polite">
         {featured ? (
           <motion.div
             key={featured.moment_id}
-            initial={{ opacity: 0, y: 14 }}
+            initial={{ opacity: 0.35, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.35, ease: "easeOut" }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
             className="border-l-2 border-[#5EA0FF]/70 px-5 py-4"
           >
             <h2 className="text-[22px] font-semibold leading-snug tracking-tight text-white">
@@ -74,17 +75,25 @@ export default function Narrative({
             <p className="mt-2 text-sm leading-relaxed text-[#94A3B8]">{featured.explanation}</p>
           </motion.div>
         ) : (
-          <motion.p
-            key="empty"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="px-5 py-4 text-sm leading-relaxed text-white/50"
-          >
-            {empty}
-          </motion.p>
+          <div key="empty" className="flex items-start gap-3 px-5 py-4">
+            <span className="mt-0.5 flex h-8 items-end gap-[3px]" aria-hidden>
+              {[0, 1, 2, 3].map((i) => (
+                <i
+                  key={i}
+                  className="mi-eq w-[3px] rounded-full bg-[#5EA0FF]/80"
+                  style={{ height: `${10 + (i % 4) * 5}px`, animationDelay: `${i * 160}ms` }}
+                />
+              ))}
+            </span>
+            <div>
+              {idleTitle && (
+                <div className="text-sm font-medium tracking-tight text-white/80">{idleTitle}</div>
+              )}
+              <p className="mt-0.5 text-sm leading-relaxed text-white/45">{empty}</p>
+            </div>
+          </div>
         )}
-      </AnimatePresence>
+      </div>
     </Glass>
   );
 }

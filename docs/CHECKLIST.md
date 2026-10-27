@@ -14,7 +14,7 @@
 - [x] `MIT LICENSE` present; `README.md` links it.
 
 ## Working submission
-- [x] `pytest -q` passes in `backend/` (116 tests).
+- [x] `pytest -q` passes in `backend/` (117 tests).
 - [x] `npm test` passes in `frontend/` (41 vitest tests).
 - [x] `ruff check .` and `ruff format --check .` clean in `backend/`.
 - [x] `npm run build` succeeds in `frontend/` (tsc + vite).

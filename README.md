@@ -1,9 +1,29 @@
 # MatchIQ
 
-Real-time, explainable football match intelligence for studio / broadcast / streaming use.
-Built for the "Inside the Game: Developer Hackathon" (Microsoft + Premier League).
-**All clubs, players, stadiums and events are synthetic and invented** — no real teams,
-players, badges, logos or league branding anywhere in code, data or UI.
+[![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.139-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![Tests](https://img.shields.io/badge/tests-117%20backend%20%7C%2042%20frontend-success)](#test-and-lint)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
+> **Real-time, explainable football match intelligence for studio / broadcast /
+> streaming use.** Built for the "Inside the Game: Developer Hackathon"
+> (Microsoft + Premier League). Every club, player, stadium and event is
+> **synthetic and invented** — no real teams, players, badges, logos or league
+> branding anywhere in code, data or UI.
+
+[![Console view](docs/screenshots/console.png)](docs/screenshots/console.png)
+[![TV broadcast view](docs/screenshots/tv.png)](docs/screenshots/tv.png)
+[![Mobile view](docs/screenshots/mobile.png)](docs/screenshots/mobile.png)
+
+<|start|> Experience | What you see |
+|---|---|
+| **📺 TV Broadcast View** | Full-screen pitch, scorebug `[NGU] 2–1 [EVR]`, 89' winner auto-raises a lower-third (badge, headline, xG/score pills) with Azure AI Speech commentary, fading after 8 s. |
+| **💻 Interactive Console** | Broadcast dashboard: pitch, pitch-control/heatmap layers, pressure timeline, AI narrative, metrics, player dossiers, Tactical Copilot, agent trace. |
+| **📱 Second-screen (mobile)** | Responsive single-column layout — same live engine, same engine-computed numbers. |
 
 ## Architecture
 
@@ -14,7 +34,7 @@ flowchart LR
     SIM["1. INGEST\nsimulator/\nseeded synthetic\nevent stream"] --> ENG["2. INTERPRET\nengine/\nrolling windows\nmomentum + moments"]
     ENG --> AG["3. EXPLAIN\nagents/ + llm/\n5 agents, grounded\nin engine evidence"]
     AG --> API["4. RENDER\napi/ + frontend/\nFastAPI SSE +\nReact dashboard"]
-    API --> YOU["5. PERSONALIZE\nAnalyst/Fan/Beginner\nEN/UA, club, focus"]
+    API --> YOU["5. PERSONALIZE\nAnalyst/Fan/Beginner\nclub, focus"]
 ```
 
 | Stage | Code | What it guarantees |
@@ -67,6 +87,20 @@ flowchart LR
   stdlib only) with strict grounding prompt and MockLLM fallback; configure
   via `MATCHIQ_AZURE_FOUNDRY_ENDPOINT / _API_KEY / _DEPLOYMENT` (default
   `gpt-4o`), legacy `MATCHIQ_AZURE_*` vars still work.
+
+## Run it in 30 seconds (one command)
+
+```powershell
+.\start.ps1
+```
+
+`start.ps1` checks Python 3.11+ and Node 20+, installs missing dependencies,
+frees ports `:8000` / `:5173`, boots FastAPI + Vite hidden, waits until both
+answer, then opens the dashboard. Logs live in `.run/`; stop everything with
+`.\stop.ps1`. No `.env` required — the demo boots fully offline (MockLLM +
+in-memory store).
+
+Manual equivalent (2 terminals) is in [Quickstart](#quickstart--local-dashboard-2-terminals).
 
 ## Requirements
 
@@ -155,7 +189,7 @@ python -m app.simulator generate --seed 42 --scenario demo
 python -m app.simulator replay --speed 60
 python -m app.engine feed --file ../data/samples/sample_demo_seed42.json
 python -m app.agents run --mode fan --lang en
-python -m app.agents run --mode beginner --lang uk --club NGU --player-focus NGU_10
+python -m app.agents run --mode beginner --club NGU --player-focus NGU_10
 python -m app.agents run --llm azure  # needs MATCHIQ_AZURE_* env vars, else MockLLM
 ```
 
@@ -171,13 +205,13 @@ ruff format --check .
 ```powershell
 cd frontend
 npm run build
-npm test   # 41 frontend unit tests (vitest): api targets, hooks, components
+npm test   # 42 frontend unit tests (vitest): api targets, hooks, components
 ```
 
 ## Match controls (frontend)
 
 - Header: play/pause, speeds `1x 10x 60x`, restart, Analyst/Fan/Beginner,
-  EN/UA, `🎙️ Live Audio` (Azure Speech → browser voice fallback + crowd),
+  `🎙️ Live Audio` (Azure Speech → browser voice fallback + crowd),
   experience pill `📺 TV / 💻 Console` (remembered, ESC returns to console).
 - Pitch header: layer toggle `Tokens / Pitch Control / Heatmap`,
   `📏 Measure` (click two players; `⚠️` rupture badge asks the Copilot),

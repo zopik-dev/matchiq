@@ -145,7 +145,7 @@ export interface XrayData {
 
 export interface Profile {
   mode: "analyst" | "fan" | "beginner";
-  lang: "en" | "uk";
+  lang: "en";
   club: string | null;
   focus: string | null;
 }

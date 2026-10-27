@@ -1,8 +1,8 @@
 """MockLLM: fast, deterministic, offline template generator (Phase 3).
 
 Used for CI, tests and laptop development. Every template slot is filled from
-the evidence payload only, so output is grounded by construction. English and
-Ukrainian templates are provided.
+the evidence payload only, so output is grounded by construction. English
+templates are provided.
 """
 
 from typing import Any
@@ -19,18 +19,6 @@ _TEMPLATES: dict[str, dict[str, dict[str, str]]] = {
             "momentum_swing": "Momentum swings to {team}: home index now {after} (was {before}).",
             "tactical_shift": "{team} change in minute {minute}: {off} off, {on} on.",
         },
-        "uk": {
-            "goal": "{scorer} забиває за {team} на {minute}-й хвилині. xG {xg}, рахунок {score}.",
-            "big_chance": "{player} з гарною нагодою за {team} на {minute}-й хвилині: xG {xg}.",
-            "pressure_spike": (
-                "{team} сильно пресингує: {pressure_events} єдиноборств за 5 хвилин, "
-                "у {opponent} — {opponent_pressure_events}."
-            ),
-            "momentum_swing": (
-                "Імпульс переходить до {team}: індекс господарів {after} (було {before})."
-            ),
-            "tactical_shift": "Заміна в {team} на {minute}-й хвилині: {off} йде, {on} виходить.",
-        },
     },
     "story": {
         "en": {
@@ -39,13 +27,6 @@ _TEMPLATES: dict[str, dict[str, dict[str, str]]] = {
             "pressure_spike": "{team} turn up the heat without the ball.",
             "momentum_swing": "The tide turns towards {team}.",
             "tactical_shift": "{team} reshuffle with fresh legs ({off} for {on}).",
-        },
-        "uk": {
-            "goal": "Гол! {team} — {score} (автор — {scorer}, {minute}-а хвилина).",
-            "big_chance": "{team} тисне: {player} перевіряє воротаря.",
-            "pressure_spike": "{team} додає тиску без м'яча.",
-            "momentum_swing": "Гра розвертається на користь {team}.",
-            "tactical_shift": "{team} перебудовується свіжими силами ({off} замість {on}).",
         },
     },
     "copilot": {
@@ -72,28 +53,6 @@ _TEMPLATES: dict[str, dict[str, dict[str, str]]] = {
                 "with momentum {momentum}."
             ),
         },
-        "uk": {
-            "goal": (
-                "Тому що {scorer} реалізував момент xG {xg} за {team} "
-                "на {minute}-й хвилині, рахунок {score}."
-            ),
-            "big_chance": (
-                "Тому що {player} перевірив воротаря за {team} на {minute}-й хвилині з xG {xg}."
-            ),
-            "pressure_spike": (
-                "Тому що {team} провів {pressure_events} єдиноборств за 5 хвилин "
-                "проти {opponent_pressure_events} у суперника."
-            ),
-            "momentum_swing": (
-                "Тому що індекс господарів став {after} (було {before}) на користь {team}."
-            ),
-            "tactical_shift": (
-                "Тому що {team} змінив схему на {minute}-й хвилині: {off} йде, {on} виходить."
-            ),
-            "general": (
-                "На {minute}-й хвилині {team} має {possession}% володіння з імпульсом {momentum}."
-            ),
-        },
     },
 }
 
@@ -115,8 +74,7 @@ class MockLLM:
         names: dict[str, str],
         language: str = "en",
     ) -> str:
-        lang = language if language in ("en", "uk") else "en"
-        group = _TEMPLATES.get(agent, _TEMPLATES["explain"])[lang]
+        group = _TEMPLATES.get(agent, _TEMPLATES["explain"])["en"]
         template = group.get(task, "{team} update in minute {minute}.")
         slots = _slots(evidence, names)
         try:

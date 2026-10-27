@@ -16,7 +16,7 @@ studio / broadcast / streaming use.
 - All data is synthetic. Use INVENTED clubs, players and stadiums. Never use real club or
   player names, badges, logos or any Premier League branding.
 - No secrets in code. .env is git-ignored. Never read, print or log .env or any key.
-- User-facing text is English (Ukrainian is added later as a second language).
+- User-facing text is English.
 - Runs on a weak laptop: Python 3.11+, no GPU, small dependencies
   (FastAPI, pydantic v2, pytest, ruff).
 - No external network calls until Phase 3. LLM calls go through an abstraction with an

@@ -1,6 +1,7 @@
 """HTTP routes for matches and replay control (Phase 4)."""
 
 import json
+import os
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Query
@@ -17,7 +18,8 @@ from app.models.events import EventType
 from app.simulator.generator import load_match
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-DEMO_FILE = REPO_ROOT / "data" / "samples" / "sample_demo_seed42.json"
+_DATA_DIR = Path(os.environ.get("MATCHIQ_DATA_DIR", str(REPO_ROOT / "data" / "samples")))
+DEMO_FILE = _DATA_DIR / "sample_demo_seed42.json"
 
 router = APIRouter(prefix="/api")
 
@@ -55,8 +57,8 @@ class AskBody(BaseModel):
 def _profile(mode: str, lang: str, club: str | None, focus: str | None) -> PersonalizeProfile:
     if mode not in ("analyst", "fan", "beginner"):
         raise HTTPException(status_code=422, detail="mode must be analyst|fan|beginner")
-    if lang not in ("en", "uk"):
-        raise HTTPException(status_code=422, detail="lang must be en|uk")
+    if lang != "en":
+        raise HTTPException(status_code=422, detail="lang must be en")
     return PersonalizeProfile(mode=mode, language=lang, favorite_club=club, player_focus=focus)  # type: ignore[arg-type]
 
 
@@ -217,8 +219,8 @@ def copilot_ask(body: AskBody) -> dict:
     """Answer a tactical question, grounded strictly in engine evidence."""
     if body.mode not in ("analyst", "fan", "beginner"):
         raise HTTPException(status_code=422, detail="mode must be analyst|fan|beginner")
-    if body.lang not in ("en", "uk"):
-        raise HTTPException(status_code=422, detail="lang must be en|uk")
+    if body.lang != "en":
+        raise HTTPException(status_code=422, detail="lang must be en")
     azure = AzureFoundryLLM()
     llm = azure if azure.available() else MockLLM()
     query = body.query if body.minute is None else f"{body.query} ({body.minute}')"
@@ -228,8 +230,8 @@ def copilot_ask(body: AskBody) -> dict:
 def _check_mode_lang(mode: str, lang: str) -> None:
     if mode not in ("analyst", "fan", "beginner"):
         raise HTTPException(status_code=422, detail="mode must be analyst|fan|beginner")
-    if lang not in ("en", "uk"):
-        raise HTTPException(status_code=422, detail="lang must be en|uk")
+    if lang != "en":
+        raise HTTPException(status_code=422, detail="lang must be en")
 
 
 @router.get("/players/{player_id}/telemetry")

@@ -36,13 +36,11 @@ def test_telemetry_shape_and_ranges():
     assert dossier["name"] in dossier["insight"]
 
 
-def test_telemetry_modes_and_languages_differ():
+def test_telemetry_modes_differ():
     pid = _scorer_id()
     match = _match()
     en = player_telemetry(match, pid, lang="en", mode="analyst")["insight"]
-    uk = player_telemetry(match, pid, lang="uk", mode="analyst")["insight"]
     fan = player_telemetry(match, pid, lang="en", mode="fan")["insight"]
-    assert en != uk
     assert en != fan
 
 

@@ -47,7 +47,7 @@ def build_prompt(
         "payload with the ONLY numbers you may use. Rules: use numbers exactly "
         "as given (rounding to 2 decimals allowed); never invent scores, minutes, "
         "percentages or statistics; if a number is missing, omit it. "
-        f"Reply in {'Ukrainian' if language == 'uk' else 'English'}."
+        "Reply in English."
     )
     user = (
         f"Agent: {agent}\nTask: {task}\nTeams: {names}\nEvidence: {evidence}\n"

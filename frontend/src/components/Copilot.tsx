@@ -36,14 +36,7 @@ function badges(evidence: Record<string, unknown>): string[] {
   return out;
 }
 
-export function quickPills(home: string, away: string, lang: "en" | "uk"): string[] {
-  if (lang === "uk") {
-    return [
-      `Чому ${away} забив на 57-й?`,
-      `Поясни переможну контратаку на 89-й`,
-      `Як зламався пресинг ${home}?`,
-    ];
-  }
+export function quickPills(home: string, away: string): string[] {
   return [
     `Why did ${away} score at 57'?`,
     `Explain the 89' winning counter-attack`,
@@ -120,7 +113,7 @@ export default function Copilot({
         <span className="text-sm font-semibold tracking-tight text-white">{title}</span>
       </div>
       <div className="mb-2.5 flex flex-wrap gap-1.5">
-        {quickPills(homeName, awayName, profile.lang).map((pill) => (
+        {quickPills(homeName, awayName).map((pill) => (
           <button
             key={pill}
             onClick={() => {
@@ -148,8 +141,8 @@ export default function Copilot({
         />
         <GenerateButton
           small
-          idle={profile.lang === "uk" ? "Питай" : "Ask"}
-          busy={profile.lang === "uk" ? "Думаю" : "Thinking"}
+          idle="Ask"
+          busy="Thinking"
           isBusy={loading}
           disabled={loading || !query.trim()}
           title="send"

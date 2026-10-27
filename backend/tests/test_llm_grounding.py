@@ -45,26 +45,15 @@ def test_mock_output_grounded_for_every_demo_moment():
             assert check_grounding(text, evidence), (agent, moment.type, text)
 
 
-def test_mock_supports_ukrainian():
-    text = MockLLM().generate(
-        agent="explain",
-        task="goal",
-        evidence={"team_id": "NGU", "minute": 23, "scorer": "NGU_11", "xg": 0.55, "score": "1-0"},
-        names={"NGU": "Northgate United"},
-        language="uk",
-    )
-    assert "забиває" in text
-
-
 def test_prompt_builder_forbids_invented_numbers():
     system, user = build_prompt(
         agent="explain",
         task="goal",
         evidence={"xg": 0.5},
         names={"NGU": "Northgate United"},
-        language="uk",
+        language="en",
     )
-    assert "ONLY numbers" in system and "Ukrainian" in system
+    assert "ONLY numbers" in system and "English" in system
     assert "'xg': 0.5" in user or '"xg": 0.5' in user or "0.5" in user
 
 

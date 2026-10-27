@@ -140,30 +140,3 @@ def test_personalize_modes_differ():
         texts[mode] = agent.handle_line(story, {}, "p").payload["text"]
     assert len(set(texts.values())) == 3
     assert "chance quality" in texts["beginner"]
-
-
-def test_personalize_ukrainian_and_club_and_focus():
-    from app.agents.messages import AgentMessage
-
-    story = AgentMessage(
-        id="s",
-        kind="story.line",
-        sender="story",
-        moment_id="m1",
-        payload={"text": "line"},
-        evidence={"scorer": "EVR_10", "team_id": "EVR"},
-    )
-    agent = PersonalizeAgent(PersonalizeProfile(mode="fan", language="uk", favorite_club="EVR"))
-    text = agent.handle_line(story, {}, "p").payload["text"]
-    assert "Який момент!" in text and "Ваш клуб." in text
-    focused = PersonalizeAgent(PersonalizeProfile(player_focus="NGU_10"))
-    assert focused.handle_line(story, {}, "p") is None
-    other = AgentMessage(
-        id="s2",
-        kind="story.line",
-        sender="story",
-        moment_id="m2",
-        payload={"text": "line"},
-        evidence={"scorer": "NGU_10", "team_id": "NGU"},
-    )
-    assert focused.handle_line(other, {}, "p") is not None

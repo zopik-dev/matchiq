@@ -75,43 +75,6 @@ FOLLOWUPS: dict[str, dict[str, list[str]]] = {
             "Where is the momentum going?",
         ],
     },
-    "uk": {
-        "goal": [
-            "Який був xG того моменту?",
-            "Як змінився імпульс після гола?",
-            "Покажи тиск перед голом",
-        ],
-        "big_chance": [
-            "Хто створив найбільше нагод?",
-            "Який загальний xG матчу?",
-            "Як змінився імпульс після нагоди?",
-        ],
-        "pressure_spike": [
-            "Хто виграв найбільше єдиноборств?",
-            "Чи призвів пресинг до гола?",
-            "Як змінилося володіння після пресингу?",
-        ],
-        "momentum_swing": [
-            "Що спричинило перелом?",
-            "Чи змінився рахунок після перелому?",
-            "Хто контролював наступні 10 хвилин?",
-        ],
-        "tactical_shift": [
-            "Хто вийшов, а хто пішов з поля?",
-            "Чи допомогла зміна схеми?",
-            "Що сталося за наступні 10 хвилин?",
-        ],
-        "counter": [
-            "Наскільки швидким був перехід?",
-            "Хто розпочав контратаку?",
-            "Який був xG завершення?",
-        ],
-        "general": [
-            "Хто зараз попереду?",
-            "Покажи голи",
-            "Куди рухається імпульс?",
-        ],
-    },
 }
 
 _match_cache: MatchData | None = None
@@ -183,7 +146,6 @@ def answer_question(
     llm: BaseLLM | None = None,
 ) -> dict[str, Any]:
     """Answer a tactical question, grounded strictly in engine evidence."""
-    lang = language if language in ("en", "uk") else "en"
     match, engine = get_demo_context()
     home_id = match.meta.teams[0].id
     away_id = match.meta.teams[1].id
@@ -191,6 +153,7 @@ def answer_question(
     parsed = parse_question(query)
     minute = parsed["minute"]
     topic = parsed["topic"]
+    lang = "en"
 
     moment = find_moment(engine.moments, topic, minute)
     at_minute = minute if minute is not None else (moment.minute if moment else 0)
@@ -290,15 +253,7 @@ def _fallback_text(
         return names.get(str(raw), str(raw)) if raw else "-"
 
     if moment is not None and moment.type == "goal":
-        if lang == "uk":
-            return (
-                f"{who('scorer')} забиває за {team} на {minute}-й хвилині "
-                f"(рахунок {evidence.get('score')})."
-            )
         score = evidence.get("score")
         return f"{who('scorer')} scores for {team} in minute {minute} (now {score})."
-    if lang == "uk":
-        after = evidence.get("momentum", evidence.get("momentum_home_after", "?"))
-        return f"{team}: імпульс {after} на {minute}-й хвилині."
     after = evidence.get("momentum", evidence.get("momentum_home_after", "?"))
     return f"{team}: momentum {after} at minute {minute}."

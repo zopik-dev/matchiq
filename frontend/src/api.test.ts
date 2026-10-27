@@ -75,10 +75,10 @@ describe("replay controls", () => {
 
 describe("streamUrl", () => {
   it("encodes mode, lang, club and player focus", () => {
-    const url = streamUrl({ mode: "fan", lang: "uk", club: "NGU", focus: "NGU_10" });
+    const url = streamUrl({ mode: "fan", lang: "en", club: "NGU", focus: "NGU_10" });
     expect(url).toContain("/api/replay/stream?");
     expect(url).toContain("mode=fan");
-    expect(url).toContain("lang=uk");
+    expect(url).toContain("lang=en");
     expect(url).toContain("club=NGU");
     expect(url).toContain("player_focus=NGU_10");
   });

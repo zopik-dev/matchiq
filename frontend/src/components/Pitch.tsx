@@ -103,6 +103,7 @@ export default function Pitch({
   xray,
   onRupture,
   lang,
+  fit = false,
 }: {
   home: Team;
   away: Team;
@@ -116,6 +117,7 @@ export default function Pitch({
   xray: XrayOverlay | null;
   onRupture?: (question: string) => void;
   lang: Lang;
+  fit?: boolean;
 }) {
   const [showLines, setShowLines] = useState(true);
   const [layer, setLayer] = useState<PitchLayer>("tokens");
@@ -433,7 +435,7 @@ export default function Pitch({
   }, [xray]);
 
   return (
-    <div className="relative">
+    <div className={`relative ${fit ? "mi-tv-pitch" : ""}`}>
       <div className="absolute left-2 top-2 z-10 flex gap-1 rounded-full border border-white/10 bg-black/50 p-1">
         {(
           [
@@ -446,12 +448,13 @@ export default function Pitch({
             key={id}
             onClick={() => setLayer(id)}
             aria-pressed={layer === id}
+            aria-label={label}
             className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold transition ${
               layer === id ? "mi-seg-active text-white" : "text-white/55 hover:text-white"
             }`}
           >
             <Icon size={12} className="text-[#94A3B8]" aria-hidden />
-            {label}
+            <span className="hidden sm:inline">{label}</span>
           </button>
         ))}
       </div>
@@ -472,11 +475,12 @@ export default function Pitch({
           }`}
         >
           <Ruler size={12} className="text-[#94A3B8]" aria-hidden />
-          {STR[lang].measure}
+          <span className="hidden sm:inline">{STR[lang].measure}</span>
         </button>
         <button
           onClick={() => setShowLines((v) => !v)}
           title={STR[lang].tacticalLines}
+          aria-label={STR[lang].tacticalLines}
           className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold transition ${
             showLines
               ? "border-white/25 bg-white/[0.14] text-white"
@@ -488,7 +492,7 @@ export default function Pitch({
             : undefined
         }
       >
-        {STR[lang].tacticalLines}
+        <span className="hidden sm:inline">{STR[lang].tacticalLines}</span>
       </button>
       </div>
       <svg

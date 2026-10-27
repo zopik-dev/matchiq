@@ -40,10 +40,10 @@ describe("LowerThird", () => {
         })}
         teamName={null}
         lookup={lookup}
-        lang="uk"
+        lang="en"
       />,
     );
-    expect(screen.getByText(/ТАКТИЧНА ЗАМІНА/)).toBeInTheDocument();
-    expect(screen.getByText("Заміна NGU_8 → NGU_14")).toBeInTheDocument();
+    expect(screen.getByText(/TACTICAL SHIFT/)).toBeInTheDocument();
+    expect(screen.getByText("Sub NGU_8 → NGU_14")).toBeInTheDocument();
   });
 });
