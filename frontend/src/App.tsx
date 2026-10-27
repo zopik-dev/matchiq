@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, Flag, Mic, Sparkles, User, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Flag, Mic, Sparkles, User, X, Zap } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { controls, fetchMatch, streamUrl } from "./api";
 import { useCommentaryAudio } from "./hooks/useCommentaryAudio";
@@ -433,23 +433,33 @@ export default function App() {
 
   if (!match || !home || !away) {
     return (
-      <div className="relative flex min-h-dvh items-center justify-center bg-ink px-6 text-slate-300">
+      <div className="relative flex min-h-dvh items-center justify-center bg-ink px-6">
         <div aria-hidden className="mi-noir" />
-        <div className="relative text-center">
-          <div className="flex justify-center">
-            <BrandMark />
+        <div aria-hidden className="mi-noir-grain" />
+        <div className="relative flex flex-col items-center gap-6 text-center">
+          <div className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-white">
+            <Zap
+              size={22}
+              className="text-white"
+              style={{ filter: "drop-shadow(0 0 6px hsla(210,100%,70%,0.9))" }}
+            />
+            MatchIQ
           </div>
-          <div className="mt-5 flex items-end justify-center gap-[3px]" aria-hidden>
-            {[0, 1, 2, 3, 4].map((i) => (
+          <div className="flex items-end justify-center gap-[3px]" aria-hidden>
+            {[0, 1, 2, 3, 4, 5].map((i) => (
               <i
                 key={i}
-                className="mi-eq w-[3px] rounded-full bg-[#5EA0FF]/80"
-                style={{ height: `${10 + (i % 4) * 5}px`, animationDelay: `${i * 140}ms` }}
+                className="mi-eq w-[3px] rounded-full bg-[#5EA0FF]"
+                style={{ height: `${12 + (i % 4) * 6}px`, animationDelay: `${i * 120}ms` }}
               />
             ))}
           </div>
-          <p className="mt-4 text-sm font-medium tracking-tight text-white/80">{t.connecting}</p>
-          <p className="mt-1 text-xs text-white/40">{t.backendDown}</p>
+          <div className="space-y-1">
+            <p className="text-sm font-medium tracking-tight text-white/80">{t.connecting}</p>
+            <p className="text-xs text-white/35">
+              {t.backendDown} · <span className="font-mono">:8000</span>
+            </p>
+          </div>
         </div>
       </div>
     );
