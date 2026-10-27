@@ -19,11 +19,20 @@
 [![TV broadcast view](docs/screenshots/tv.png)](docs/screenshots/tv.png)
 [![Mobile view](docs/screenshots/mobile.png)](docs/screenshots/mobile.png)
 
-<|start|> Experience | What you see |
-|---|---|
-| **📺 TV Broadcast View** | Full-screen pitch, scorebug `[NGU] 2–1 [EVR]`, 89' winner auto-raises a lower-third (badge, headline, xG/score pills) with Azure AI Speech commentary, fading after 8 s. |
-| **💻 Interactive Console** | Broadcast dashboard: pitch, pitch-control/heatmap layers, pressure timeline, AI narrative, metrics, player dossiers, Tactical Copilot, agent trace. |
-| **📱 Second-screen (mobile)** | Responsive single-column layout — same live engine, same engine-computed numbers. |
+### Three experiences, one engine
+
+<p align="center">
+  <a href="docs/screenshots/console.png"><img src="docs/screenshots/console.png" width="32%" alt="Interactive Console" /></a>
+  <a href="docs/screenshots/tv.png"><img src="docs/screenshots/tv.png" width="32%" alt="TV Broadcast View" /></a>
+  <a href="docs/screenshots/mobile.png"><img src="docs/screenshots/mobile.png" width="16%" alt="Mobile" /></a>
+</p>
+
+| | Experience | Highlights |
+|---|---|---|
+| 📺 | **TV Broadcast View** | Full-screen pitch, scorebug, auto lower-third on goals/chances/shifts, Azure AI Speech commentary, fades after 8 s, ESC to exit |
+| 💻 | **Interactive Console** | Broadcast dashboard, pitch with Tokens/Pitch Control/Heatmap layers, pundit measuring tool, pressure timeline, AI narrative, metrics, player dossiers, Tactical Copilot, agent trace |
+| 📱 | **Second screen (mobile)** | Responsive single-column layout, same live engine, same engine-computed numbers |
+
 
 ## Architecture
 
@@ -38,7 +47,7 @@ flowchart LR
 ```
 
 | Stage | Code | What it guarantees |
-|---|---|---|
+|---|---|
 | 1. Ingest | `backend/app/simulator/` | Same seed + scenario = same match, 1200–1800 events, scripted story arcs |
 | 2. Interpret | `backend/app/engine/` | Rolling 1/5/10-min stats, momentum index, detected moments — pure math, zero LLM |
 | 3. Explain | `backend/app/agents/` + `backend/app/llm/` | Typed handoffs, retries/fallbacks, grounding check rejects invented numbers |
